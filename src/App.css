@@ -36,3 +36,38 @@
     transform: rotate(360deg);
   }
 }
+
+
+.btn-outline-primary ul, .btn-success ul, .btn-danger ul{
+  margin:10px;
+}
+.btn-outline-primary li, .btn-success li, .btn-danger li{
+  text-align:left;
+}
+
+span.tag{
+  color: orange;
+  border: 1px solid orange;
+  padding: 3px 7px 4px 7px;
+  margin-left: 30px;
+  border-radius: 5px;
+  font-size: .5em;
+  vertical-align: middle;
+}
+span.counter{
+  color: orange;
+  margin-right:15px;
+}
+
+.form-check.form-switch{
+  text-align: left;
+}
+.form-check.form-switch {
+  margin-left: 80%;
+}
+
+label.form-check-label{
+    font-size: .7em;
+    vertical-align: text-top;
+}
+
