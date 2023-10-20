@@ -284,7 +284,7 @@ function LearnSession(props: any) {
                 <p></p>
                 <h2>Session erfolgreich abgeschlossen</h2>
                 <p></p>
-                <p><img src={process.env.PUBLIC_URL + "youdidit.gif"} /></p>
+                <p><img src={process.env.PUBLIC_URL + "/youdidit.gif"} /></p>
                 {sendingHome ? <h2>Sending data home </h2> :
                     <button className="btn m-2 btn-outline-primary"
                         key="next123"
