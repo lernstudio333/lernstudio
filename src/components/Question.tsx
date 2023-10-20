@@ -150,7 +150,7 @@ function Question(props: {question: Question, answerOptions: Answer[], audio: an
         </h2>
         <p></p>
         <div className="container">
-            <div className="row row-cols-2">
+            <div className="row row-cols-1 row-cols-md-2">
                 {props.answerOptions.map((a, idx) =>
                     <div className="col d-grid gap-2" key={idx} >
                         <button className={"btn m-2 " + btnColCls(idxButtonClicked, idx)}

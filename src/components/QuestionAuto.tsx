@@ -99,7 +99,7 @@ function QuestionAuto(props: { question: Question, audio: any, carryOn: Function
                 <div className="row justify-content-md-center">
                     <div className="col">
                         {answerButtons.map(ab =>
-                            <button className={"btn m-5 " + ab.color}
+                            <button className={"btn mx-1 mx-md-3" + ab.color}
                                 type="button"
                                 key={ab.key}
                                 onClick={ab.handle}
