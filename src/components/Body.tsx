@@ -6,21 +6,13 @@ import '../App.css';
 
 
 
-function Body(props: {audio:any, setCounter:Function}) {
+function Body(props: {audio:any, setCounter:Function, token:string|null}) {
     const [activeComp, setActiveComp] = useState<MainState>('CourseSelector');
     const [filterFavourites, setFilterFavourites] = useState<Boolean>(false);
     const [learnMethod, setLearnMethod] = useState<LearnMethod>('repeat');
     const [selectedCourse, setSelectedCourse] = useState<string|null>(null);
+    const [courses, setCourses] = useState<Doc[]>([]);
 
-
-
-    // type Cmp = { [key in string]:any }
-
-    //const components : Cmp = {
-    //    LearnSession: LearnSession,
-    //    CourseSelector: CourseSelector
-    //};
-    //const SpecificStory = components[activeComp] ;
 
     return <>
         {activeComp == "CourseSelector" ? 
@@ -33,6 +25,9 @@ function Body(props: {audio:any, setCounter:Function}) {
             learnMethod={learnMethod}
             setLearnMethod={setLearnMethod}
             setSelectedCourse={setSelectedCourse}
+            token={props.token}
+            courses={courses}
+            setCourses={setCourses}
            />
         : ""}
         {activeComp == "LearnSession" ? 
@@ -43,6 +38,7 @@ function Body(props: {audio:any, setCounter:Function}) {
             filterFavourites={filterFavourites}
             learnMethod={learnMethod}
             setCounter={props.setCounter}
+            token={props.token}
             />
         : ""}
     </>

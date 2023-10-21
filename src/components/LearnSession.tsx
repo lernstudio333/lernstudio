@@ -33,7 +33,7 @@ function LearnSession(props: any) {
         console.log(props.filterFavourites)
         const data = {
             "dataType": "nextCards",
-            "token": "adfjkl6h3489pdfghsrrlzh58eotzhwels8ps5o",
+            "token": props.token,
             "cardSelector": props.selectedCourse,
             "method": props.learnMethod,
             "favouritesOnly": props.filterFavourites

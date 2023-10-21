@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import '../App.css';
 import { useState } from "react";
 
@@ -18,8 +18,8 @@ function QuestionAuto(props: { question: Question, audio: any, carryOn: Function
                 return answer[0]
             }
             if (answer.length > 1) {
-                return <ul>{answer.map(el =>
-                    <li>{el}</li>
+                return <ul>{answer.map((el,idx) =>
+                    <li key={"quali"+idx}>{el}</li>
                 )}</ul>
             }
         }
@@ -99,7 +99,7 @@ function QuestionAuto(props: { question: Question, audio: any, carryOn: Function
                 <div className="row justify-content-md-center">
                     <div className="col">
                         {answerButtons.map(ab =>
-                            <button className={"btn mx-1 mx-md-3" + ab.color}
+                            <button className={"btn mx-1 mx-md-3 " + ab.color}
                                 type="button"
                                 key={ab.key}
                                 onClick={ab.handle}
