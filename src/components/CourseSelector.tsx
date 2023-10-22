@@ -36,7 +36,7 @@ function CourseSelector(props: {
         console.log('IN USEEFFECT')
         console.log(props.token)
         if (props.token && (props.courses.length == 0)) {
-            setIsLoading(false)
+            setIsLoading(true)
             console.log('IN USEEFFECT FETCHING')
             const data = {
                 "dataType": "docs",

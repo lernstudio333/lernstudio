@@ -185,7 +185,7 @@ function LearnSession(props: any) {
         console.log(learnedQuestions)
         const data = {
             "dataType": "learnings",
-            "token": "adfjkl6h3489pdfghsrrlzh58eotzhwels8ps5o",
+            "token": props.token,
             "learnings": learnedQuestions
         }
         console.log("X!X")
@@ -277,7 +277,7 @@ function LearnSession(props: any) {
                                 carryOn={nextRound} />
                         </>
                     : <h2>Nothing to learn!</h2>
-                : <p><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                : <p><span className="spinner-border-sm" role="status" aria-hidden="true"></span>
                     &nbsp;&nbsp;Loading ...</p>
             :
             <div>
@@ -285,7 +285,8 @@ function LearnSession(props: any) {
                 <h2>Session erfolgreich abgeschlossen</h2>
                 <p></p>
                 <p><img src={process.env.PUBLIC_URL + "/youdidit.gif"} /></p>
-                {sendingHome ? <h2>Sending data home </h2> :
+                {sendingHome ?
+                    <h2><span className="spinner-border" style={{"borderWidth": "0.1em"}} role="status" aria-hidden="true"></span>&nbsp;Sending data home </h2> :
                     <button className="btn m-2 btn-outline-primary"
                         key="next123"
                         onClick={clickedNext}>Weiter</button>
