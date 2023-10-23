@@ -1,6 +1,6 @@
 function config():{ [id: string]: number } {
     return {
-        MAXROUNDS : 3
+        MAXROUNDS : 20
     }
 }
 
