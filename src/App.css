@@ -71,3 +71,12 @@ label.form-check-label{
     vertical-align: text-top;
 }
 
+.audiocontrol {
+  display:none;
+}
+
+@media only screen and (min-width: 992px) {
+    .audiocontrol {
+      display:block;
+    }
+}

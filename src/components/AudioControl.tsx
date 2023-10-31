@@ -4,27 +4,27 @@ import InputSlider from 'react-input-slider';
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import "../App.css"
 
-function AudioControl(props: {audio:any}) {
+function AudioControl(props: { audio: any }) {
     const [vol, setVolume] = useState(75);
     const fontStyles = { color: '#568203', fontSize: '20px' };
 
-    function updateVolume(coords: { x : number; y : number }){
+    function updateVolume(coords: { x: number; y: number }) {
         setVolume(coords.x);
-        props.audio.success.volume = coords.x/100;
-        props.audio.error.volume = coords.x/100;
-        props.audio.successFanfare.volume = coords.x/100;
+        props.audio.success.volume = coords.x / 100;
+        props.audio.error.volume = coords.x / 100;
+        props.audio.successFanfare.volume = coords.x / 100;
         props.audio.success.play();
     }
-      
+
     return (<>
-        <div>
+        <div className="audiocontrol">
             <InputSlider
                 axis="x"
                 x={vol}
                 onChange={updateVolume}
             />
+            <BsFillVolumeUpFill style={fontStyles} />
         </div>
-        <BsFillVolumeUpFill style={fontStyles} />
 
     </>)
 }
