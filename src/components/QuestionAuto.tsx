@@ -59,7 +59,8 @@ function QuestionAuto(props: { question: Question, audio: any, carryOn: Function
     
 
     return <>
-         <Form>
+         <Form className="d-flex justify-content-end me-lg-5 me-2">
+            <span className="score l-auto p-1 me-2">{(props.question.learning?.score||0) + '❀'}</span>
             <Form.Check
                 type="switch"
                 id="fav-switch-qu"

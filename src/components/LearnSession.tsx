@@ -67,7 +67,7 @@ function LearnSession(props: any) {
 
 
 
-    function updateQuestion(qu: Question, answerLevel: AnswerLevel, isFavourite:boolean): Question {
+    function updateQuestion(qu: Question, answerLevel: AnswerLevel, isFavourite: boolean): Question {
         console.log("in update qu")
         console.log(qu)
 
@@ -76,22 +76,27 @@ function LearnSession(props: any) {
         let newScore = oldScore;
         let newErrorScore = oldErrorScore;
         if (answerLevel == "WRONG") { newScore -= 1 }
-        if (answerLevel == "CORRECT") { newScore += 1; newErrorScore +=1 }
+        if (answerLevel == "CORRECT") { newScore += 1; newErrorScore += 1 }
         newScore = Math.max(0, newScore)
-        let learning = { 
-            score: newScore, 
-            errs: newErrorScore, 
+        let learning = {
+            score: newScore,
+            errs: newErrorScore,
             lastEdited: (new Date()).toString(),
             fav: isFavourite
         }
+
+
+        const answeredInThisSession = ('answeredInThisSession' in qu && qu.answeredInThisSession ?
+            qu.answeredInThisSession : 0) + 1;
+
+        console.log('DONE')
+        console.log(qu)
+        let doneInThisSession = 'doneInThisSession' in qu && qu.doneInThisSession ? qu.doneInThisSession : false;
+        console.log(doneInThisSession)
         
-
-        const answeredInThisSession = (qu.answeredInThisSession || 0) + 1;
-
-        let doneInThisSession = (qu.doneInThisSession || false)
         if (newScore >= 2 && answerLevel == "CORRECT") { doneInThisSession = true }
         if (answeredInThisSession >= 5) { doneInThisSession = true }
-    
+
         return {
             ...qu,
             answeredInThisSession: answeredInThisSession,
@@ -113,7 +118,7 @@ function LearnSession(props: any) {
 
     function moveQuestion(where: Where, questions: Question[], currentQuestion: Question) {
 
-        if (where == "END" || currentQuestion.doneInThisSession){
+        if (where == "END" || currentQuestion.doneInThisSession) {
             return [...questions.slice(1), currentQuestion]
         }
         //const randomDistance = 4
@@ -145,7 +150,7 @@ function LearnSession(props: any) {
         return Math.floor(Math.random() * (max)) + 1;
     }
 
-    function updateQuestions(questions: Question[], answerLevel: AnswerLevel, isFavourite:boolean) {
+    function updateQuestions(questions: Question[], answerLevel: AnswerLevel, isFavourite: boolean) {
         const updatedQuestion = updateQuestion(questions[0], answerLevel, isFavourite)
         const where = moveWhere(updatedQuestion, answerLevel)
         return moveQuestion(where, questions, updatedQuestion)
@@ -156,21 +161,23 @@ function LearnSession(props: any) {
         if (questions) {
             console.log("in next Round")
             console.log(questions)
-            if(answerLevel == "CORRECT"){
-                props.setCounter((ct: number) => ct +=5)
+            if (answerLevel == "CORRECT") {
+                props.setCounter((ct: number) => ct += 5)
             }
-            if(answerLevel == "ALMOST"){
-                props.setCounter((ct: number) => ct +=1)
+            if (answerLevel == "ALMOST") {
+                props.setCounter((ct: number) => ct += 1)
             }
             setQuestions(qs => updateQuestions(qs, answerLevel, isFavourite))
             setRounds(r => r += 1);
 
-            console.log('Q0Q1')
-            console.log(questions)
-            console.log(questions[0])
-            console.log(questions[1])
-            
-            if (rounds > config().MAXROUNDS || questions[1].doneInThisSession) {
+            const question1isDone = (questions.length > 1
+                && 'doneInThisSession' in questions[1]
+                && questions[1].doneInThisSession) ?
+                questions[1].doneInThisSession : false;
+
+            if (rounds > config().MAXROUNDS ||
+                rounds > questions.length * 3 ||
+                question1isDone) {
                 setSessionFinished(true)
                 console.log(questions)
             }
@@ -223,7 +230,7 @@ function LearnSession(props: any) {
         console.log("step1")
         console.log(corAnswer)
         const maxAnswers = Math.min(answers.length, 4)
-        let selectionAnswers = randomSample(answers, maxAnswers-1)
+        let selectionAnswers = randomSample(answers, maxAnswers - 1)
         selectionAnswers.splice(getRandomInt(maxAnswers), 0, corAnswer);  //insert correct answer at random position
         console.log(selectionAnswers)
         return selectionAnswers
@@ -253,14 +260,14 @@ function LearnSession(props: any) {
     }
 
     return <>
-        <div style={{textAlign: 'right', margin: '0.7em'}}>
+        <div className="d-flex justify-content-end m-1 mt-2">
             <button type="button" className="btn-close" aria-label="Close" onClick={clickedNext}></button>
         </div>
         {!sessionFinished ?
-            session ? 
-                questions.length > 0 ? 
+            session ?
+                questions.length > 0 ?
                     questionType(questions[0]) == "AnswerOptions" ?
-                        <> 
+                        <>
                             <Question
                                 question={questions[0]}
                                 answerOptions={questions[0] ? randomAnswers(session.answers, questions[0].answer) : []}
@@ -286,7 +293,7 @@ function LearnSession(props: any) {
                 <p></p>
                 <p><img src={process.env.PUBLIC_URL + "/youdidit.gif"} /></p>
                 {sendingHome ?
-                    <h2><span className="spinner-border" style={{"borderWidth": "0.1em"}} role="status" aria-hidden="true"></span>&nbsp;Sending data home </h2> :
+                    <h2><span className="spinner-border" style={{ "borderWidth": "0.1em" }} role="status" aria-hidden="true"></span>&nbsp;Sending data home </h2> :
                     <button className="btn m-2 btn-outline-primary"
                         key="next123"
                         onClick={clickedNext}>Weiter</button>

@@ -59,12 +59,7 @@ span.counter{
   margin-right:15px;
 }
 
-.form-check.form-switch{
-  text-align: left;
-}
-.form-check.form-switch {
-  margin-left: 80%;
-}
+
 
 label.form-check-label{
     font-size: .7em;
@@ -73,6 +68,10 @@ label.form-check-label{
 
 .audiocontrol {
   display:none;
+}
+.score {
+  font-size: .7em;   
+  color:lightblue;
 }
 
 @media only screen and (min-width: 992px) {
