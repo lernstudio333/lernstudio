@@ -144,7 +144,9 @@ function Question(props: { question: Question, answerOptions: Answer[], audio: a
                 onChange={onIsFavouritChange}
             />
         </Form>
-        <p>Was bedeutet</p>
+        <p>{props.question?.options?.type=="SYN"? "Nenne ein Synonym für" : 
+            props.question?.options?.type=="GAP"? "Vervollständige" :
+            "Was bedeutet"}</p>
         <h2>
             {props.question ? props.question.question : ""}
             {props.question.options.type == "SYN" ? <span className="tag">Synonym</span> : <></>}

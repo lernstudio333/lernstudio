@@ -32,6 +32,11 @@ function CourseSelector(props: {
         props.setActiveComp('LearnSession')
     }
 
+    function handleClickCardList(fav = false) {
+        props.setFilterFavourites(fav)
+        props.setActiveComp('List')
+    }
+
     useEffect(() => {
         console.log('IN USEEFFECT')
         console.log(props.token)
@@ -128,6 +133,11 @@ function CourseSelector(props: {
                 key={'repeatX'}
                 onClick={() => handleClick('repeat', true)}>
                 Wiederholen*
+            </button>
+            <button className="btn btn-primary m-2" type="button"
+                key={'showList'}
+                onClick={() => handleClickCardList()}>
+                Liste
             </button>
         </div>
         {err && <h2>{err}</h2>}

@@ -75,8 +75,8 @@ function LearnSession(props: any) {
         const oldErrorScore = 'learning' in qu && qu.learning && qu.learning.errs ? qu.learning.errs : 0;
         let newScore = oldScore;
         let newErrorScore = oldErrorScore;
-        if (answerLevel == "WRONG") { newScore -= 1 }
-        if (answerLevel == "CORRECT") { newScore += 1; newErrorScore += 1 }
+        if (answerLevel == "WRONG") { newScore -= 1; newErrorScore += 1 }
+        if (answerLevel == "CORRECT") { newScore += 1 }
         newScore = Math.max(0, newScore)
         let learning = {
             score: newScore,
@@ -261,7 +261,7 @@ function LearnSession(props: any) {
 
     return <>
         <div className="d-flex justify-content-end m-1 mt-2">
-            <button type="button" className="btn-close" aria-label="Close" onClick={clickedNext}></button>
+            <button type="button" className="btn-close" aria-label="Close" onClick={clickedClose}></button>
         </div>
         {!sessionFinished ?
             session ?

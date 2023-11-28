@@ -7,7 +7,7 @@ interface Session {
 }
 
     
-type MainState = 'CourseSelector' | 'LearnSession' 
+type MainState = 'CourseSelector' | 'LearnSession' | 'List'
 type LearnMethod = 'repeat' | 'learnNew' 
 
 

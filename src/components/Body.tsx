@@ -2,6 +2,8 @@ import React, { Component, Dispatch, SetStateAction } from 'react';
 import { useState } from "react";
 import CourseSelector from './CourseSelector'
 import LearnSession from './LearnSession'
+import CardList from './CardList'
+
 import '../App.css';
 
 
@@ -38,6 +40,14 @@ function Body(props: {audio:any, setCounter:Function, token:string|null}) {
             filterFavourites={filterFavourites}
             learnMethod={learnMethod}
             setCounter={props.setCounter}
+            token={props.token}
+            />
+        : ""}
+        {activeComp == "List" ? 
+            <CardList
+            setActiveComp={setActiveComp}
+            selectedCourse={selectedCourse}
+            filterFavourites={filterFavourites}
             token={props.token}
             />
         : ""}

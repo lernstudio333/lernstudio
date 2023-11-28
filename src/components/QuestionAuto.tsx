@@ -69,7 +69,7 @@ function QuestionAuto(props: { question: Question, audio: any, carryOn: Function
                 />
         </Form>  
         <p>{props.question?.options?.type=="SYN"? "Nenne ein Synonym für" : 
-            props.question?.options?.type=="GAP"? "Vervollständig se" :
+            props.question?.options?.type=="GAP"? "Vervollständige" :
             "Was bedeutet"}</p>
         <h2>
             {props.question ? props.question.question : ""}
