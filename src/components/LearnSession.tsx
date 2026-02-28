@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import '../App.css';
 import Question from './Question'
 import QuestionAuto from './QuestionAuto'
-//import useFetchSessionData from '../hooks/useFetchSessionData'
+import getMockSession from '../hooks/useFetchSessionData'
 import { useState, useEffect } from "react";
 import { randomSample } from "../hooks/util"
 import config from "../shared/config"
@@ -27,6 +27,12 @@ function LearnSession(props: any) {
     }, [sessionFinished]) //
 
     useEffect(() => {
+        if (import.meta.env.DEV) {
+            const mockData = getMockSession()
+            setSession(mockData)
+            setQuestions(mockData.questions)
+            return
+        }
         console.log("in useEffect")
         console.log(props.selectedCourse)
         console.log(props.learnMethod)
@@ -185,16 +191,21 @@ function LearnSession(props: any) {
     }
 
     function sendHome(qus: Question[]) {
-
         const learnedQuestions = qus.filter(qu => ('answeredInThisSession' in qu))
             .map(qu => ({ cardId: qu.cardId, learning: qu.learning }))
-        console.log('learnedQuestions')
-        console.log(learnedQuestions)
         const data = {
             "dataType": "learnings",
             "token": props.token,
             "learnings": learnedQuestions
         }
+
+        if (import.meta.env.DEV) {
+            console.log('[dev] sendHome data:', JSON.stringify(data, null, 2))
+            return
+        }
+
+        console.log('learnedQuestions')
+        console.log(learnedQuestions)
         console.log("X!X")
         console.log(data)
         const appID = "AKfycbyj6IiQKsHOrTR_huR-v_VTOMAfhI9lpCOYxOuwTsm17TbpvNz7gSdopiY5U_U9N9XTwg"
@@ -291,7 +302,7 @@ function LearnSession(props: any) {
                 <p></p>
                 <h2>Session erfolgreich abgeschlossen</h2>
                 <p></p>
-                <p><img src={process.env.PUBLIC_URL + "/youdidit.gif"} /></p>
+                <p><img src={import.meta.env.BASE_URL + "youdidit.gif"} /></p>
                 {sendingHome ?
                     <h2><span className="spinner-border" style={{ "borderWidth": "0.1em" }} role="status" aria-hidden="true"></span>&nbsp;Sending data home </h2> :
                     <button className="btn m-2 btn-outline-primary"

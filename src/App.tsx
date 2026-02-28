@@ -13,9 +13,9 @@ import React, { useState } from 'react';
 function App() {
 
   const audio = {
-    success: new Audio(process.env.PUBLIC_URL + "/success.mp3"),
-    successFanfare: new Audio(process.env.PUBLIC_URL + "/success-fanfare.mp3"),
-    error: new Audio(process.env.PUBLIC_URL + "/error.wav")
+    success: new Audio(import.meta.env.BASE_URL + "success.mp3"),
+    successFanfare: new Audio(import.meta.env.BASE_URL + "success-fanfare.mp3"),
+    error: new Audio(import.meta.env.BASE_URL + "error.wav")
   }
 
   const start = () => {

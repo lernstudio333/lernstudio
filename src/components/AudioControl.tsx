@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { useState } from "react";
-import InputSlider from 'react-input-slider';
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import "../App.css"
 
@@ -18,10 +17,12 @@ function AudioControl(props: { audio: any }) {
 
     return (<>
         <div className="audiocontrol">
-            <InputSlider
-                axis="x"
-                x={vol}
-                onChange={updateVolume}
+            <input
+                type="range"
+                min={0}
+                max={100}
+                value={vol}
+                onChange={(e) => updateVolume({ x: parseInt(e.target.value), y: 0 })}
             />
             <BsFillVolumeUpFill style={fontStyles} />
         </div>

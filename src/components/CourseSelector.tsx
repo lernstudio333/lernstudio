@@ -2,7 +2,7 @@ import React, { Component, useState, useEffect } from 'react';
 import { Container, Dropdown, Button, ButtonGroup } from 'react-bootstrap';
 import { AccordionEventKey } from 'react-bootstrap/esm/AccordionContext';
 import { isAsteriskToken } from 'typescript';
-//import useFetchDocs from '../hooks/useFetchDocs'
+import getMockDocs from '../hooks/useFetchDocs'
 
 
 
@@ -41,6 +41,10 @@ function CourseSelector(props: {
         console.log('IN USEEFFECT')
         console.log(props.token)
         if (props.token && (props.courses.length == 0)) {
+            if (import.meta.env.DEV) {
+                props.setCourses(getMockDocs())
+                return
+            }
             setIsLoading(true)
             console.log('IN USEEFFECT FETCHING')
             const data = {

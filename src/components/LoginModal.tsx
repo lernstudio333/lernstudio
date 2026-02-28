@@ -5,8 +5,8 @@ import Modal from 'react-bootstrap/Modal';
 
 function LoginModal(props: any) {
    
-    const [userName, setUserName] = useState<string>("")
-    const [token, setToken] = useState<string>("")
+    const [userName, setUserName] = useState<string>(import.meta.env.DEV ? "test01@test.com" : "")
+    const [token, setToken] = useState<string>(import.meta.env.DEV ? "test01" : "")
 
 
     function handleClose() {

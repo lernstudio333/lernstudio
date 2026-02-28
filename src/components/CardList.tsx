@@ -3,7 +3,7 @@ import Table from 'react-bootstrap/Table';
 import '../App.css';
 import Question from './Question'
 import QuestionAuto from './QuestionAuto'
-//import useFetchSessionData from '../hooks/useFetchSessionData'
+import getMockSession from '../hooks/useFetchSessionData'
 import { useState, useEffect } from "react";
 import { randomSample } from "../hooks/util"
 import config from "../shared/config"
@@ -21,6 +21,12 @@ function CardList(props: any) {
 
 
     useEffect(() => {
+        if (import.meta.env.DEV) {
+            const mockData = getMockSession()
+            setSession(mockData)
+            setQuestions(mockData.questions)
+            return
+        }
         console.log("in CardList")
         console.log(props.selectedCourse)
         console.log(props.learnMethod)
