@@ -2,19 +2,29 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
+## Repo structure
+
+```
+lernstudio/
+├── frontend/       # React/Vite SPA
+├── backend-legacy/ # placeholder for legacy GAS code
+├── backend/        # placeholder for new backend
+└── CLAUDE.md
+```
+
+## Commands (run from `frontend/`)
 
 ```bash
 npm start          # Dev server at localhost:3000
 npm test           # Run tests (interactive watch mode)
 npm test -- --watchAll=false   # Run tests once (CI mode)
-npm run build      # Production build to /build
+npm run build      # Production build to frontend/dist
 npm run deploy     # Build + deploy to GitHub Pages
 ```
 
 ## Architecture
 
-React 18 + TypeScript SPA bootstrapped with Create React App. Deployed to GitHub Pages at `lernstudio333.github.io/lernstudio`. Styling uses Bootstrap 5 with `react-bootstrap` components.
+React 18 + TypeScript SPA. Source lives in `frontend/`. Deployed to GitHub Pages at `lernstudio333.github.io/lernstudio`. Styling uses Bootstrap 5 with `react-bootstrap` components.
 
 ### View State Machine
 
