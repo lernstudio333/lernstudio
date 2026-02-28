@@ -9,6 +9,9 @@ function runTests() {
 
   // pure unit tests
   RUN_TEST(test_robustJsonParse);
+  RUN_TEST(test_textFromElements);
+  RUN_TEST(test_getUrlAndQueryParams);
+  RUN_TEST(test_findLsLink);
 
   // webapp integration tests (require active spreadsheet + valid tokens)
   RUN_TEST(test_doPost_invalidToken);

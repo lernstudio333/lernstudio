@@ -14,7 +14,7 @@ function importCardsFromDocManually(){
 }
 
 
-function test_importSheet(){
+function test_importCardsFromDoc(){
   const docs = {
     "F42": {
       book: "HPP",
@@ -33,7 +33,7 @@ function test_importSheet(){
     }
   } 
   const doc = docs['THE_G1']
-  importSheet(doc)
+  importCardsFromDoc(doc)
 }
 
 function writeCardsOnSheetAttach(docId, cards){
@@ -116,10 +116,6 @@ function writeCardsOnSheetUpdate(docId, updatedCards){
   }
   datarange.setValues(existingData);
   writeCardsOnSheetAttach(docId, newCards)
-}
-
-function test_docReAD(){
-  const document = Docs.Documents.create({'title': 'My New Document'});
 }
 
 
@@ -210,38 +206,6 @@ function textFromElements(elmts){
     , "") || ""
 }
 
-function test_textFromElements(){
-  const testElmts = [
-      {
-        "textRun": {}
-      },
-      {
-        "textRun": {
-          "content": "Somnolenz "
-        }
-      },
-      {
-        "textRun": {
-          "textStyle": {
-           "link": {"url": "http://www.lern-studio.de?cardtype=mc&id=523489573894573&querymode=type&includeabove=2"},
-          },
-          "content": ">>>"
-        },
-      },
-      {
-        "textRun": {
-            "content": "\n"
-        },
-      }
-    ];
-  const testPar = {
-    "elements": testElmts,
-    "bullet": {"nestingLevel": 1},
-  }; 
-  //console.log(textFromElements(testElmts));
-  console.log(findLsLink(testElmts));
-  //console.log(extractParagraph(testPar));
-}
 
 
 
@@ -344,18 +308,5 @@ function getUrlAndQueryParams (url){
 
 function encodeQueryParams (){
   
-}
-function test_QueryParams(){
-    //var tests = {};
-    //tests["simple params"] = "ID=2&first=1&second=b";
-    //tests["full url"] = "http://blah.com/?third=c&fourth=d&fifth=e";
-    //tests['just ?'] = '?animal=bear&fruit=apple&building=Empire State Building&spaces=these+are+pluses';
-    //tests['with equals'] = 'foo=bar&baz=quux&equals=with=extra=equals&grault=garply';
-    //tests['no value'] = 'foo=bar&baz=&qux=quux';
-    //tests['value omit'] = 'foo=bar&baz&qux=quux';
-
-  console.log( getUrlAndQueryParams("https://lernstudio.de?ID=2&first=1&second=b"));
-  console.log( getUrlAndQueryParams("https://lernstudio.de?this=1&this=2&this=3"));
-  console.log( getUrlAndQueryParams("https://lernstudio.de?i=main&mode=front&sid=de8d49b78a85a322c4155015fdce22c4&enc=+Hello%20&empty"))
 }
 
