@@ -1,10 +1,11 @@
 // ================================================================================================
-// UNIT TEST RUNNER
-// Run this function from the GAS editor to execute all unit tests.
+// TEST RUNNER
+// Run this function from the GAS editor to execute all tests.
 // ================================================================================================
 
-function runUnitTests() {
+function runTests() {
   TESTING_STATS.reset();
+  TESTING_CONTEXT.verbose = false;
 
   // pure unit tests
   RUN_TEST(test_robustJsonParse);

@@ -11,10 +11,11 @@
  */
 const TESTING_CONTEXT = {
   group: '',
-  
+  verbose: true,   // set to false by runTests(); leave true for manual runs
+
   /**
    * Sets the current test group name and logs it.
-   * 
+   *
    * @param {string} name - The name of the test group.
    */
   setGroup: function(name) {
