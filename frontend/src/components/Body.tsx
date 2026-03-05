@@ -1,23 +1,21 @@
-import React, { Component, Dispatch, SetStateAction } from 'react';
 import { useState } from "react";
 import CourseSelector from './CourseSelector'
 import LearnSession from './LearnSession'
 import CardList from './CardList'
+import { useAuth } from '../contexts/AuthContext';
 
 import '../App.css';
 
-
-
-function Body(props: {audio:any, setCounter:Function, token:string|null}) {
+function Body(props: {audio:any, setCounter:Function}) {
+    const { token } = useAuth();
     const [activeComp, setActiveComp] = useState<MainState>('CourseSelector');
     const [filterFavourites, setFilterFavourites] = useState<Boolean>(false);
     const [learnMethod, setLearnMethod] = useState<LearnMethod>('repeat');
     const [selectedCourse, setSelectedCourse] = useState<string|null>(null);
     const [courses, setCourses] = useState<Doc[]>([]);
 
-
     return <>
-        {activeComp == "CourseSelector" ? 
+        {activeComp == "CourseSelector" ?
             <CourseSelector
             audio = {props.audio}
             setActiveComp={setActiveComp}
@@ -27,12 +25,12 @@ function Body(props: {audio:any, setCounter:Function, token:string|null}) {
             learnMethod={learnMethod}
             setLearnMethod={setLearnMethod}
             setSelectedCourse={setSelectedCourse}
-            token={props.token}
+            token={token}
             courses={courses}
             setCourses={setCourses}
            />
         : ""}
-        {activeComp == "LearnSession" ? 
+        {activeComp == "LearnSession" ?
             <LearnSession
             audio = {props.audio}
             setActiveComp={setActiveComp}
@@ -40,15 +38,15 @@ function Body(props: {audio:any, setCounter:Function, token:string|null}) {
             filterFavourites={filterFavourites}
             learnMethod={learnMethod}
             setCounter={props.setCounter}
-            token={props.token}
+            token={token}
             />
         : ""}
-        {activeComp == "List" ? 
+        {activeComp == "List" ?
             <CardList
             setActiveComp={setActiveComp}
             selectedCourse={selectedCourse}
             filterFavourites={filterFavourites}
-            token={props.token}
+            token={token}
             />
         : ""}
     </>

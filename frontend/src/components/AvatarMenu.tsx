@@ -1,23 +1,15 @@
 import Dropdown from 'react-bootstrap/Dropdown';
 import { BsPersonCircle, BsGearFill, BsSpeedometer2, BsBoxArrowRight } from 'react-icons/bs';
-import { supabase } from '../lib/supabase';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
-    userName: string | null;
-    firstName: string | null;
-    lastName: string | null;
-    role: string | null;
     score: number;
-    onSignOut: () => void;
 }
 
-function AvatarMenu({ userName, firstName, lastName, role, score, onSignOut }: Props) {
+function AvatarMenu({ score }: Props) {
+    const { userName, firstName, lastName, role, signOut } = useAuth();
     const displayName = [firstName, lastName].filter(Boolean).join(' ') || userName || '—';
-
-    async function handleSignOut() {
-        await supabase.auth.signOut();
-        onSignOut();
-    }
 
     return (
         <Dropdown align="end">
@@ -42,15 +34,15 @@ function AvatarMenu({ userName, firstName, lastName, role, score, onSignOut }: P
                     <BsGearFill className="me-2 text-secondary" />Settings
                 </Dropdown.Item>
 
-                {role === 'admin' && (
-                    <Dropdown.Item href="#admin">
+                {(role === 'admin' || role === 'course_editor') && (
+                    <Dropdown.Item as={Link} to="/admin">
                         <BsSpeedometer2 className="me-2 text-secondary" />Admin Dashboard
                     </Dropdown.Item>
                 )}
 
                 <Dropdown.Divider />
 
-                <Dropdown.Item onClick={handleSignOut} className="text-danger">
+                <Dropdown.Item onClick={signOut} className="text-danger">
                     <BsBoxArrowRight className="me-2" />Sign out
                 </Dropdown.Item>
             </Dropdown.Menu>

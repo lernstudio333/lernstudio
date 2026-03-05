@@ -3,10 +3,10 @@ import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
-function LoginModal(props: any) {
-
+function LoginModal() {
+    const { isLoggedIn, login } = useAuth();
     const [email, setEmail] = useState<string>(import.meta.env.DEV ? "test01@test.com" : "")
     const [password, setPassword] = useState<string>("")
     const [error, setError] = useState<string | null>(null)
@@ -15,31 +15,13 @@ function LoginModal(props: any) {
     async function handleLogin() {
         setError(null)
         setLoading(true)
-
-        const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-        if (authError) {
-            setError(authError.message)
-            setLoading(false)
-            return
-        }
-
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('gas_token, first_name, last_name, role')
-            .single()
-
-        props.setUserName(data.user.email)
-        props.setToken(profile?.gas_token ?? null)
-        props.setFirstName(profile?.first_name ?? null)
-        props.setLastName(profile?.last_name ?? null)
-        props.setRole(profile?.role ?? null)
-        props.setIsLoggedIn(true)
+        const err = await login(email, password)
+        if (err) setError(err)
         setLoading(false)
     }
 
     return (
-        <Modal show={!props.isLoggedIn} centered>
+        <Modal show={!isLoggedIn} centered>
             <Modal.Header>
                 <Modal.Title>Lernstudio</Modal.Title>
             </Modal.Header>
