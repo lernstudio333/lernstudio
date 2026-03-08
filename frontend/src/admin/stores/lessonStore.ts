@@ -28,6 +28,7 @@ interface LessonState {
   clearSelection: () => void;
   addNewCard: () => Promise<string | null>;
   deleteCards: (ids: string[]) => Promise<void>;
+  purgeMediaFromCards: (mediaId: string) => void;
 }
 
 export const getSortedCards = (state: Pick<LessonState, 'cards' | 'sortField' | 'sortDir'>): AdminCard[] => {
@@ -90,13 +91,17 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const { id, answers, modes, ...cardFields } = editBuffer as AdminCard;
 
     // Upsert the card row
-    const { error: cardError } = await supabase
+    console.log('[saveCard] upserting card:', { id, ...cardFields });
+    const { data: cardData, error: cardError } = await supabase
       .from('cards')
-      .upsert({ id, ...cardFields, updated_at: new Date().toISOString() });
+      .upsert({ id, ...cardFields, updated_at: new Date().toISOString() })
+      .select();
+    console.log('[saveCard] card upsert result:', { cardData, cardError });
     if (cardError) { console.error('saveCard upsert error', cardError); return; }
 
     // Replace answers: delete then insert
-    await supabase.from('card_answers').delete().eq('card_id', id);
+    const { error: deleteAnswersError } = await supabase.from('card_answers').delete().eq('card_id', id);
+    console.log('[saveCard] delete answers result:', { deleteAnswersError });
     if (answers && answers.length > 0) {
       const rows: Omit<CardAnswer, 'id'>[] = answers.map((a, i) => ({
         card_id: id,
@@ -105,7 +110,9 @@ export const useLessonStore = create<LessonState>((set, get) => ({
         position: a.position ?? i,
         media_id: a.media_id ?? null,
       }));
-      await supabase.from('card_answers').insert(rows);
+      console.log('[saveCard] inserting answers:', rows);
+      const { data: answersData, error: answersError } = await supabase.from('card_answers').insert(rows).select();
+      console.log('[saveCard] answers insert result:', { answersData, answersError });
     }
 
     // Replace modes: delete then insert
@@ -131,7 +138,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       set(s => ({
         cards: s.cards.map(c => c.id === id ? fresh as AdminCard : c),
         isDirty: false,
-        editBuffer: null,
+        editBuffer: { ...fresh as AdminCard },
       }));
     }
   },
@@ -223,5 +230,16 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       cards: s.cards.filter(c => !ids.includes(c.id)),
       selectedCardIds: new Set([...s.selectedCardIds].filter(id => !ids.includes(id))),
     }));
+  },
+
+  purgeMediaFromCards(mediaId) {
+    set(s => {
+      const stripAnswers = (answers: CardAnswer[]) => answers.filter(a => a.media_id !== mediaId);
+      const cards = s.cards.map(c => ({ ...c, answers: stripAnswers(c.answers) }));
+      const editBuffer = s.editBuffer?.answers
+        ? { ...s.editBuffer, answers: stripAnswers(s.editBuffer.answers as CardAnswer[]) }
+        : s.editBuffer;
+      return { cards, editBuffer };
+    });
   },
 }));
