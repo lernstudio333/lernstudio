@@ -27,7 +27,7 @@ It is intended for use with code generation, SQL generation, documentation, or U
 - **Supabase**
   - UUID primary keys
   - Row-level security (RLS) enforced
-  - Unified membership tables: `program_membership` and `course_membership`
+  - Unified membership tables: `program_memberships` and `course_memberships`
   - Roles: `student`, `editor`, `admin`
 - **API / DB Access**
   - Prefer Supabase client over raw SQL in frontend
@@ -72,7 +72,7 @@ It is intended for use with code generation, SQL generation, documentation, or U
 
 ## 4. Database / Supabase Guidelines
 
-- **Tables**: programs, courses, lessons, cards, card_answers, card_modes, media, profiles, program_membership, course_membership
+- **Tables**: programs, courses, lessons, cards, card_answers, card_modes, media, profiles, program_memberships, course_memberships
 - **Hierarchy**: Program → Course → Lesson → Card
 - **Membership & Roles**:
   - Membership tables replace old enrollment tables
@@ -105,6 +105,31 @@ It is intended for use with code generation, SQL generation, documentation, or U
   - Avoid full reloads while navigating cards
 
 
+
+## 6. Authentication & Session Handling
+
+- **Session source of truth:** Always use the Supabase Auth API. Never read or write `localStorage` directly.
+
+### Login Priority Order
+1. **Existing Supabase session** – restored on mount via `getSession()`; no login form shown.
+2. **Browser password manager autofill** – login form shown with proper `autocomplete` attributes.
+3. **Manual login** – user types credentials.
+
+### AuthContext — Two-Effect Pattern
+- **Effect 1 (session):** `getSession()` → `setUser()`. `onAuthStateChange` (skip `INITIAL_SESSION`) → `setUser()`. Never call Supabase API inside `onAuthStateChange` — it deadlocks the client.
+- **Effect 2 (profile):** Watches `user`; fetches profile outside the Supabase callback; sets `isLoggedIn`, profile fields, and `isInitializing = false`.
+- `isInitializing` stays `true` until profile fetch completes (session found) or `getSession()` returns no session.
+
+### Login Modal — No-Flicker Pattern
+- Single `<Modal animation={false}>` always mounted; `show={isInitializing || !isLoggedIn}`.
+- Content switches between `placeholder-glow` skeleton (during init) and real form (when logged out).
+- `animation={false}` prevents Bootstrap fade from briefly exposing form content on session restore.
+
+### Avatar Menu
+- Always rendered (never conditionally hidden in parent).
+- States: dimmed icon (initializing) → plain icon (logged out) → full dropdown (logged in).
+
+---
 
 ## 7. References
 

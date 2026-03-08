@@ -8,9 +8,22 @@ interface Props {
 }
 
 function AvatarMenu({ score }: Props) {
-    const { userName, firstName, lastName, role, signOut } = useAuth();
+    const { isLoggedIn, isInitializing, userName, firstName, lastName, role, signOut } = useAuth();
     const displayName = [firstName, lastName].filter(Boolean).join(' ') || userName || '—';
 
+    console.log('[AvatarMenu] render state:', { isInitializing, isLoggedIn, userName, role });
+
+    // Loading: show non-clickable dimmed icon while session is being restored
+    if (isInitializing) {
+        return <BsPersonCircle size={28} className="text-muted opacity-50" />;
+    }
+
+    // Logged out: show plain icon (LoginModal handles login)
+    if (!isLoggedIn) {
+        return <BsPersonCircle size={28} className="text-muted" />;
+    }
+
+    // Logged in: full dropdown
     return (
         <Dropdown align="end">
             <Dropdown.Toggle

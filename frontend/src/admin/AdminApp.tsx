@@ -7,8 +7,9 @@ import MediaPage from './pages/media/MediaPage';
 import UsersPage from './pages/users/UsersPage';
 
 function AdminApp() {
-  const { isLoggedIn, role } = useAuth();
+  const { isLoggedIn, isInitializing, role } = useAuth();
 
+  if (isInitializing) return null;
   if (!isLoggedIn || (role !== 'admin' && role !== 'course_editor')) {
     return <Navigate to="/" replace />;
   }
