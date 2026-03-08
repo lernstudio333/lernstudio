@@ -1,17 +1,38 @@
 -- =========================================
--- Program Permission 
+-- Profile Permission
 -- =========================================
 
-create policy "program write"
+alter table profiles enable row level security;
+
+create policy "profiles read"
+on profiles
+for select
+using (
+  -- admins can read all profiles (e.g. for Users admin page)
+  is_admin()
+  -- users can read their own profile
+  or id = auth.uid()
+);
+
+create policy "profiles update own"
+on profiles
+for update
+using (id = auth.uid())
+with check (id = auth.uid());
+
+
+-- =========================================
+-- Program Permission
+-- =========================================
+
+alter table programs enable row level security;
+
+create policy "program read"
 on programs
-for all
+for select
 using (
   is_admin()
-  or is_program_editor(id)
-)
-with check (
-  is_admin()
-  or is_program_editor(id)
+  or is_program_member(id)
 );
 
 create policy "program write"
@@ -169,19 +190,57 @@ on media
 for select
 using (true);
 
+drop policy if exists "media write" on media;
 create policy "media write"
 on media
 for all
 using (
+  is_admin()
+)
+with check (
   is_admin()
 );
 
 
 
 -- =========================================
--- Membership Permission 
+-- Storage Bucket Policies (cards-media)
 -- =========================================
 
+drop policy if exists "media is public" on storage.objects;
+create policy "media is public"
+on storage.objects
+for select
+using (
+  bucket_id = 'cards-media'
+);
+
+drop policy if exists "admin can upload media" on storage.objects;
+create policy "admin can upload media"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'cards-media'
+  and is_admin()
+);
+
+drop policy if exists "admin can delete media" on storage.objects;
+create policy "admin can delete media"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'cards-media'
+  and is_admin()
+);
+
+
+-- =========================================
+-- Membership Permission
+-- =========================================
+
+-- TODO: add write policies
 
 alter table program_memberships enable row level security;
 

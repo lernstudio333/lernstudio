@@ -22,8 +22,15 @@
 | Card Answers      | course/program member OR admin   | course/program editor OR admin    |
 | Card Modes        | course/program member OR admin   | course/program editor OR admin    |
 
+### Media Table RLS
+- DELETE: only `is_admin()` can delete media rows
+- SELECT / INSERT / UPDATE: inherited from existing media policies
+
+
 ## Best Practices
 - Idempotent policies
 - Use helper functions
 - Membership tables replace separate editor/student tables
 - Apply policies in migrations; seeds separate
+
+

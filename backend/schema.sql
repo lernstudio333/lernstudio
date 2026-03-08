@@ -107,7 +107,7 @@ CREATE TABLE public.profiles (
   first_name text,
   last_name text,
   gas_token text,
-  role text DEFAULT 'user'::text CHECK (role = ANY (ARRAY['user'::text, 'editor'::text, 'admin'::text])),
+  role text DEFAULT 'student'::text CHECK (role = ANY (ARRAY['student'::text, 'editor'::text, 'admin'::text])),
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
