@@ -1,22 +1,32 @@
+import { useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardType } from '../../../types/admin.types';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const CARD_TYPES: CardType[] = ['SC', 'MC', 'SYN', 'GAP', 'IMG-SC', 'IMG-MC'];
 
 function BasicInfoTab() {
   const editBuffer = useLessonStore(s => s.editBuffer);
   const updateEditBuffer = useLessonStore(s => s.updateEditBuffer);
+  const [pendingType, setPendingType] = useState<CardType | null>(null);
 
   if (!editBuffer) return null;
 
   function handleTypeChange(newType: CardType) {
     const hasAnswers = editBuffer?.answers && editBuffer.answers.length > 0;
-    if (hasAnswers && !confirm('Changing type will clear answers. Continue?')) return;
-    updateEditBuffer({ card_type: newType, answers: hasAnswers ? [] : editBuffer?.answers });
+    if (hasAnswers) { setPendingType(newType); return; }
+    updateEditBuffer({ card_type: newType });
+  }
+
+  function confirmTypeChange() {
+    if (!pendingType) return;
+    updateEditBuffer({ card_type: pendingType, answers: [] });
+    setPendingType(null);
   }
 
   return (
+    <>
     <div className="d-flex flex-column gap-3">
       <Form.Group>
         <Form.Label className="small fw-semibold">Question</Form.Label>
@@ -69,6 +79,19 @@ function BasicInfoTab() {
         />
       </Form.Group>
     </div>
+
+    <ConfirmModal
+      show={!!pendingType}
+      title="Change Card Type?"
+      confirmLabel="Change Type"
+      confirmVariant="warning"
+      onConfirm={confirmTypeChange}
+      onCancel={() => setPendingType(null)}
+    >
+      <p>Changing the card type will clear all existing answers. This cannot be undone.</p>
+      <p>Are you sure you want to continue?</p>
+    </ConfirmModal>
+    </>
   );
 }
 

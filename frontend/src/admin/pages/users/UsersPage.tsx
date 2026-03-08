@@ -32,7 +32,7 @@ function UsersPage() {
   return (
     <div>
       <h5 className="mb-3">Users</h5>
-      <Table hover size="sm">
+      <Table hover size="sm" className="text-start">
         <thead>
           <tr>
             <th>Name</th>

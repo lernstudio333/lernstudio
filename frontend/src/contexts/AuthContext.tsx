@@ -29,10 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) return authError.message;
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('gas_token, first_name, last_name, role')
+      .eq('id', data.user.id)
       .single();
+
+    console.log('[AuthContext] profile fetch:', { profile, profileError });
 
     setUserName(data.user.email ?? null);
     setToken(profile?.gas_token ?? null);

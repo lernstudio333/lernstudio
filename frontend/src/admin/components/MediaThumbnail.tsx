@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
+const MEDIA_BUCKET = import.meta.env.VITE_MEDIA_BUCKET as string;
+
 interface Props {
   mediaId: string;
   size?: number;
@@ -12,12 +14,12 @@ function MediaThumbnail({ mediaId, size = 60 }: Props) {
   useEffect(() => {
     supabase
       .from('media')
-      .select('url')
+      .select('path')
       .eq('id', mediaId)
       .single()
       .then(({ data }) => {
-        if (!data?.url) return;
-        const { data: publicData } = supabase.storage.from('media').getPublicUrl(data.url);
+        if (!data?.path) return;
+        const { data: publicData } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(data.path);
         setUrl(publicData.publicUrl);
       });
   }, [mediaId]);

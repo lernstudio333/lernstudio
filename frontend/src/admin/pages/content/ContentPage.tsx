@@ -31,6 +31,7 @@ function ContentPage() {
       const programs = (progRes.data ?? []) as AdminProgram[];
       const courses = (courseRes.data ?? []) as AdminCourse[];
       const lessons = (lessonRes.data ?? []) as AdminLesson[];
+      console.log('[ContentPage] fetched', { programs, courses, lessons });
 
       const built: ProgramNode[] = programs.map(p => ({
         ...p,
@@ -61,11 +62,11 @@ function ContentPage() {
             <Accordion.Body className="p-0">
               {program.courses.map(course => (
                 <div key={course.id} className="border-bottom">
-                  <div className="px-3 py-2 fw-semibold bg-light text-muted small">{course.title}</div>
+                  <div className="px-3 py-2 fw-semibold bg-light text-muted small text-start">{course.title}</div>
                   {course.lessons.map(lesson => (
                     <div
                       key={lesson.id}
-                      className="px-4 py-2 hover-bg-light cursor-pointer border-top"
+                      className="px-4 py-2 hover-bg-light cursor-pointer border-top small text-start"
                       style={{ cursor: 'pointer' }}
                       onClick={() => navigate(`/admin/lessons/${lesson.id}`)}
                     >
@@ -73,12 +74,12 @@ function ContentPage() {
                     </div>
                   ))}
                   {course.lessons.length === 0 && (
-                    <div className="px-4 py-2 text-muted fst-italic small">No lessons</div>
+                    <div className="px-4 py-2 text-muted fst-italic small text-start">No lessons</div>
                   )}
                 </div>
               ))}
               {program.courses.length === 0 && (
-                <div className="px-3 py-2 text-muted fst-italic small">No courses</div>
+                <div className="px-3 py-2 text-muted fst-italic small text-start">No courses</div>
               )}
             </Accordion.Body>
           </Accordion.Item>

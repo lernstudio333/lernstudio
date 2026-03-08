@@ -76,7 +76,10 @@ export interface AdminUser {
 
 export interface AdminMedia {
   id: string;
-  url: string;
-  tags: string[];
+  bucket: string;
+  path: string;
+  media_type: 'image' | 'video';
+  width: number | null;
+  height: number | null;
   created_at: string;
 }

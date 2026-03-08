@@ -40,13 +40,17 @@ function CardListPanel({ lessonId, cardId }: Props) {
     return <div className="p-3"><Spinner animation="border" size="sm" /> Loading cards…</div>;
   }
 
+  const compact = !!cardId;
+
   const table = (
-    <Table hover size="sm" className="mb-0" style={{ tableLayout: 'fixed' }}>
+    <Table hover size="sm" className="mb-0 text-start" style={{ tableLayout: 'fixed' }}>
       <colgroup>
         <col style={{ width: '30px' }} />
         <col style={{ width: '32px' }} />
         <col />
         <col style={{ width: '70px' }} />
+        {!compact && <col style={{ width: '180px' }} />}
+        {!compact && <col style={{ width: '120px' }} />}
         <col style={{ width: '80px' }} />
       </colgroup>
       <thead>
@@ -55,6 +59,8 @@ function CardListPanel({ lessonId, cardId }: Props) {
           <th></th>
           <th>Question</th>
           <th>Type</th>
+          {!compact && <th>Answers</th>}
+          {!compact && <th>Modes</th>}
           <th>Updated</th>
         </tr>
       </thead>
@@ -66,6 +72,7 @@ function CardListPanel({ lessonId, cardId }: Props) {
             lessonId={lessonId}
             cardId={cardId}
             isDraggable={isDraggable}
+            compact={compact}
           />
         ))}
         {sorted.length === 0 && (

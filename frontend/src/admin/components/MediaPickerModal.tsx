@@ -3,6 +3,8 @@ import { Modal, Spinner, Alert } from 'react-bootstrap';
 import { supabase } from '../../lib/supabase';
 import type { AdminMedia } from '../types/admin.types';
 
+const MEDIA_BUCKET = import.meta.env.VITE_MEDIA_BUCKET as string;
+
 interface Props {
   show: boolean;
   onSelect: (mediaId: string) => void;
@@ -24,7 +26,7 @@ function MediaPickerModal({ show, onSelect, onClose }: Props) {
       .then(({ data }) => {
         const items = (data ?? []) as AdminMedia[];
         const withUrls = items.map(item => {
-          const { data: pub } = supabase.storage.from('media').getPublicUrl(item.url);
+          const { data: pub } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(item.path);
           return { ...item, publicUrl: pub.publicUrl };
         });
         setMedia(withUrls);
@@ -33,7 +35,7 @@ function MediaPickerModal({ show, onSelect, onClose }: Props) {
   }, [show]);
 
   const filtered = search
-    ? media.filter(m => m.tags?.some(t => t.toLowerCase().includes(search.toLowerCase())))
+    ? media.filter(m => m.path?.toLowerCase().includes(search.toLowerCase()))
     : media;
 
   return (
@@ -59,7 +61,7 @@ function MediaPickerModal({ show, onSelect, onClose }: Props) {
                 className="border rounded overflow-hidden"
                 style={{ cursor: 'pointer', aspectRatio: '1' }}
                 onClick={() => onSelect(item.id)}
-                title={item.tags?.join(', ')}
+                title={item.path}
               >
                 <img
                   src={item.publicUrl}
