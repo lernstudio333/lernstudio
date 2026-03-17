@@ -14,7 +14,7 @@ CREATE TABLE public.card_answers (
 );
 CREATE TABLE public.card_modes (
   card_id uuid NOT NULL,
-  mode text NOT NULL CHECK (mode = ANY (ARRAY['SHOW'::text, 'MULTIPLECARDS'::text, 'MULTIPLEANSWERS'::text, 'SORTPARTS'::text, 'SELFASSES'::text, 'TYPE'::text, 'ALIKES'::text, 'MULTIPLECARDS_BW'::text, 'SORTPARTS_BW'::text, 'SELFASSES_BW'::text, 'TYPE_BW'::text])),
+  mode text NOT NULL CHECK (mode = ANY (ARRAY['DISPLAY_ANSWER'::text, 'MULTIPLE_CHOICE'::text, 'TYPED_ANSWER'::text, 'SELF_ASSESSMENT'::text, 'ARRANGE_ORDER'::text])),
   value integer NOT NULL,
   min_score integer DEFAULT 0,
   CONSTRAINT card_modes_pkey PRIMARY KEY (card_id, mode),
@@ -25,13 +25,13 @@ CREATE TABLE public.cards (
   ext_id text UNIQUE,
   lesson_id uuid,
   question text NOT NULL,
-  card_type text NOT NULL CHECK (card_type = ANY (ARRAY['SC'::text, 'MC'::text, 'SYN'::text, 'GAP'::text, 'IMG-SC'::text, 'IMG-MC'::text])),
+  card_type text NOT NULL CHECK (card_type = ANY (ARRAY['SINGLE_CARD'::text, 'MULTI_CARD'::text, 'SYNONYM'::text, 'GAP'::text, 'IMAGES'::text])),
   details text,
   source text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   position integer NOT NULL DEFAULT 0,
-  tipp text,
+  tip text,
   CONSTRAINT cards_pkey PRIMARY KEY (id),
   CONSTRAINT cards_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.lessons(id)
 );
@@ -138,6 +138,8 @@ CREATE TABLE public.programs (
   position integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  teaser_image text,
+  teaser_text text,
   CONSTRAINT programs_pkey PRIMARY KEY (id),
   CONSTRAINT programs_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
 );

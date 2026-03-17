@@ -1,17 +1,6 @@
-export type CardType = 'SC' | 'MC' | 'SYN' | 'GAP' | 'IMG-SC' | 'IMG-MC';
+export type CardType = 'SINGLE_CARD' | 'MULTI_CARD' | 'SYNONYM' | 'GAP' | 'IMAGES';
 
-export type CardModeType =
-  | 'SHOW'
-  | 'MULTIPLECARDS'
-  | 'MULTIPLEANSWERS'
-  | 'SORTPARTS'
-  | 'SELFASSES'
-  | 'TYPE'
-  | 'ALIKES'
-  | 'MULTIPLECARDS_BW'
-  | 'SORTPARTS_BW'
-  | 'SELFASSES_BW'
-  | 'TYPE_BW';
+export type CardModeType = 'DISPLAY_ANSWER' | 'MULTIPLE_CHOICE' | 'TYPED_ANSWER' | 'SELF_ASSESSMENT' | 'ARRANGE_ORDER';
 
 export interface CardAnswer {
   id: string;
@@ -23,10 +12,9 @@ export interface CardAnswer {
 }
 
 export interface CardMode {
-  id: string;
-  card_id: string;
-  mode: CardModeType;
-  value: number;
+  card_id:   string;
+  mode:      CardModeType;
+  value:     number;
   min_score: number;
 }
 
@@ -35,7 +23,7 @@ export interface AdminCard {
   lesson_id: string;
   question: string;
   card_type: CardType;
-  tipp: string | null;
+  tip: string | null;
   details: string | null;
   source: string | null;
   position: number;
@@ -61,9 +49,11 @@ export interface AdminCourse {
 }
 
 export interface AdminProgram {
-  id: string;
-  title: string;
-  position: number;
+  id:           string;
+  title:        string;
+  position:     number;
+  teaser_image: string | null;
+  teaser_text:  string | null;
 }
 
 export interface AdminUser {

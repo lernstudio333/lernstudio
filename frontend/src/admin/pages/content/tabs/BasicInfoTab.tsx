@@ -4,7 +4,7 @@ import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardType } from '../../../types/admin.types';
 import ConfirmModal from '../../../components/ConfirmModal';
 
-const CARD_TYPES: CardType[] = ['SC', 'MC', 'SYN', 'GAP', 'IMG-SC', 'IMG-MC'];
+const CARD_TYPES: CardType[] = ['SINGLE_CARD', 'MULTI_CARD', 'SYNONYM', 'GAP', 'IMAGES'];
 
 function BasicInfoTab() {
   const editBuffer = useLessonStore(s => s.editBuffer);
@@ -41,7 +41,7 @@ function BasicInfoTab() {
       <Form.Group>
         <Form.Label className="small fw-semibold">Card Type</Form.Label>
         <Form.Select
-          value={editBuffer.card_type ?? 'SC'}
+          value={editBuffer.card_type ?? 'SINGLE_CARD'}
           onChange={e => handleTypeChange(e.target.value as CardType)}
         >
           {CARD_TYPES.map(t => (
@@ -51,12 +51,12 @@ function BasicInfoTab() {
       </Form.Group>
 
       <Form.Group>
-        <Form.Label className="small fw-semibold">Tipp</Form.Label>
+        <Form.Label className="small fw-semibold">Tip</Form.Label>
         <Form.Control
           as="textarea"
           rows={2}
-          value={editBuffer.tipp ?? ''}
-          onChange={e => updateEditBuffer({ tipp: e.target.value })}
+          value={editBuffer.tip ?? ''}
+          onChange={e => updateEditBuffer({ tip: e.target.value })}
         />
       </Form.Group>
 

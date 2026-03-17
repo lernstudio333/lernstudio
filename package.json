@@ -1,0 +1,14 @@
+{
+  "name": "lernstudio",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev":              "npm run dev --workspace=frontend",
+    "build":            "npm run build --workspace=frontend",
+    "supabase:types":   "supabase gen types typescript --project-dir backend > shared/types/database.types.ts",
+    "supabase:deploy":  "supabase functions deploy --project-dir backend"
+  }
+}

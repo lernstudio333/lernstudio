@@ -1,0 +1,25 @@
+{
+  "name": "shared",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./index.ts",
+  "exports": {
+    ".":            "./index.ts",
+    "./core":       "./core/enumFactory.ts",
+    "./constants":  "./core/constants.ts",
+    "./enums":      "./core/enums.ts",
+    "./types":      "./types/database.types.ts",
+    "./cards":      "./features/cards/types.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  },
+  "scripts": {
+    "test":    "vitest run",
+    "test:watch": "vitest"
+  }
+}
