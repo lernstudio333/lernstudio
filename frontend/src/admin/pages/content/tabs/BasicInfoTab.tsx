@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Form } from 'react-bootstrap';
+import { CardTypes } from 'shared';
 import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardType } from '../../../types/admin.types';
 import ConfirmModal from '../../../components/ConfirmModal';
 
-const CARD_TYPES: CardType[] = ['SINGLE_CARD', 'MULTI_CARD', 'SYNONYM', 'GAP', 'IMAGES'];
+const CARD_TYPE_OPTIONS = CardTypes.values().map(e => ({ key: e.key as CardType, label: e.export_as }));
 
 function BasicInfoTab() {
   const editBuffer = useLessonStore(s => s.editBuffer);
@@ -41,11 +42,11 @@ function BasicInfoTab() {
       <Form.Group>
         <Form.Label className="small fw-semibold">Card Type</Form.Label>
         <Form.Select
-          value={editBuffer.card_type ?? 'SINGLE_CARD'}
+          value={editBuffer.card_type ?? CardTypes.SINGLE_CARD.key}
           onChange={e => handleTypeChange(e.target.value as CardType)}
         >
-          {CARD_TYPES.map(t => (
-            <option key={t} value={t}>{t}</option>
+          {CARD_TYPE_OPTIONS.map(t => (
+            <option key={t.key} value={t.key}>{t.label}</option>
           ))}
         </Form.Select>
       </Form.Group>
@@ -67,6 +68,15 @@ function BasicInfoTab() {
           rows={2}
           value={editBuffer.details ?? ''}
           onChange={e => updateEditBuffer({ details: e.target.value })}
+        />
+      </Form.Group>
+
+      <Form.Group>
+        <Form.Label className="small fw-semibold">External ID</Form.Label>
+        <Form.Control
+          type="text"
+          value={editBuffer.ext_id ?? ''}
+          onChange={e => updateEditBuffer({ ext_id: e.target.value || null })}
         />
       </Form.Group>
 

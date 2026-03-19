@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardAnswer } from '../../../types/admin.types';
 import MediaPickerModal from '../../../components/MediaPickerModal';
@@ -22,18 +22,13 @@ function ImgMCAnswerEditor() {
         id: '',
         card_id: editBuffer?.id ?? '',
         answer_text: mediaId,
-        is_correct: false,
+        is_correct: true,
         position: pickingIndex,
         media_id: mediaId,
       });
     }
     updateEditBuffer({ answers: updated });
     setPickingIndex(null);
-  }
-
-  function toggleCorrect(index: number) {
-    const updated = answers.map((a, i) => i === index ? { ...a, is_correct: !a.is_correct } : a);
-    updateEditBuffer({ answers: updated });
   }
 
   function removeAnswer(index: number) {
@@ -53,15 +48,6 @@ function ImgMCAnswerEditor() {
                 ?
               </div>
             )}
-            <div className="mt-1">
-              <Form.Check
-                type="checkbox"
-                label="Correct"
-                checked={answer.is_correct}
-                onChange={() => toggleCorrect(index)}
-                className="small"
-              />
-            </div>
             <div className="d-flex justify-content-center gap-1 mt-1">
               <Button size="sm" variant="outline-secondary" className="py-0 px-1" onClick={() => setPickingIndex(index)}>✎</Button>
               <Button size="sm" variant="outline-danger" className="py-0 px-1" onClick={() => removeAnswer(index)}>×</Button>

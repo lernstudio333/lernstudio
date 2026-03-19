@@ -72,6 +72,11 @@ function CardListRow({ card, lessonId, cardId, isDraggable, compact }: Props) {
       </td>
       {!compact && (
         <td className="text-truncate text-muted small">
+          {card.ext_id ?? <span className="fst-italic">—</span>}
+        </td>
+      )}
+      {!compact && (
+        <td className="text-truncate text-muted small">
           {card.answers?.length > 0
             ? card.answers.map(a => a.answer_text).join(', ')
             : <span className="fst-italic">—</span>}

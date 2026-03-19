@@ -20,6 +20,7 @@ export interface CardMode {
 
 export interface AdminCard {
   id: string;
+  ext_id: string | null;
   lesson_id: string;
   question: string;
   card_type: CardType;

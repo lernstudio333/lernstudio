@@ -1,8 +1,10 @@
+import { CardTypes } from 'shared';
 import { useLessonStore } from '../../../stores/lessonStore';
 import SCAnswerEditor from '../answers/SCAnswerEditor';
 import MCAnswerEditor from '../answers/MCAnswerEditor';
-import ImgSCAnswerEditor from '../answers/ImgSCAnswerEditor';
 import ImgMCAnswerEditor from '../answers/ImgMCAnswerEditor';
+
+const CT = CardTypes;
 
 function AnswersTab() {
   const editBuffer = useLessonStore(s => s.editBuffer);
@@ -10,11 +12,10 @@ function AnswersTab() {
 
   if (!editBuffer) return null;
 
-  if (cardType === 'SC') return <SCAnswerEditor />;
-  if (cardType === 'MC' || cardType === 'SYN') return <MCAnswerEditor />;
-  if (cardType === 'IMG-SC') return <ImgSCAnswerEditor />;
-  if (cardType === 'IMG-MC') return <ImgMCAnswerEditor />;
-  if (cardType === 'GAP') return <div className="text-muted fst-italic">GAP editor coming soon</div>;
+  if (cardType === CT.SINGLE_CARD.key) return <SCAnswerEditor />;
+  if (cardType === CT.MULTI_CARD.key || cardType === CT.SYNONYM.key) return <MCAnswerEditor />;
+  if (cardType === CT.IMAGES.key) return <ImgMCAnswerEditor />;
+  if (cardType === CT.GAP.key) return <div className="text-muted fst-italic">GAP editor coming soon</div>;
 
   return null;
 }

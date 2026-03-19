@@ -48,7 +48,8 @@ function CardListPanel({ lessonId, cardId }: Props) {
         <col style={{ width: '30px' }} />
         <col style={{ width: '32px' }} />
         <col />
-        <col style={{ width: '70px' }} />
+        <col style={{ width: '130px' }} />
+        {!compact && <col style={{ width: '90px' }} />}
         {!compact && <col style={{ width: '180px' }} />}
         {!compact && <col style={{ width: '120px' }} />}
         <col style={{ width: '80px' }} />
@@ -59,6 +60,7 @@ function CardListPanel({ lessonId, cardId }: Props) {
           <th></th>
           <th>Question</th>
           <th>Type</th>
+          {!compact && <th>Ext ID</th>}
           {!compact && <th>Answers</th>}
           {!compact && <th>Modes</th>}
           <th>Updated</th>

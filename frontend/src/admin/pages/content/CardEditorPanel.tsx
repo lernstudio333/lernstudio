@@ -85,6 +85,14 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
 
   return (
     <div className="border rounded p-3">
+      <div className="d-flex justify-content-end mb-2">
+        <Button
+          size="sm"
+          variant="outline-secondary"
+          onClick={() => handleNavRequest(`/admin/lessons/${lessonId}`)}
+          title="Close editor"
+        >✕</Button>
+      </div>
       <CardEditorNav
         lessonId={lessonId}
         cardId={cardId}

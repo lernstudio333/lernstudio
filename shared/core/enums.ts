@@ -1,5 +1,5 @@
-import { createEnum } from './enumFactory';
-import type { EnumEntry } from './enumFactory';
+import { createEnum } from './enumFactory.ts';
+import type { EnumEntry } from './enumFactory.ts';
 
 // ── Simple Enums ─────────────────────────────────────────────
 

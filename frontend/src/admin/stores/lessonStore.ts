@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { arrayMove } from '@dnd-kit/sortable';
+import { CardTypes } from 'shared';
 import { supabase } from '../../lib/supabase';
 import type { AdminCard, CardAnswer, CardMode } from '../types/admin.types';
 
@@ -8,6 +9,8 @@ type SortDir = 'asc' | 'desc';
 
 interface LessonState {
   lessonId: string | null;
+  courseId: string | null;
+  programId: string | null;
   cards: AdminCard[];
   isLoadingCards: boolean;
   sortField: SortField;
@@ -16,7 +19,9 @@ interface LessonState {
   isDirty: boolean;
   editBuffer: Partial<AdminCard> | null;
 
+  setLessonContext: (programId: string, courseId: string) => void;
   loadLesson: (id: string) => Promise<void>;
+  reloadCards: () => Promise<void>;
   setSort: (field: SortField, dir: SortDir) => void;
   updateEditBuffer: (partial: Partial<AdminCard>) => void;
   initEditBuffer: (card: AdminCard) => void;
@@ -45,6 +50,8 @@ export const getSortedCards = (state: Pick<LessonState, 'cards' | 'sortField' | 
 
 export const useLessonStore = create<LessonState>((set, get) => ({
   lessonId: null,
+  courseId: null,
+  programId: null,
   cards: [],
   isLoadingCards: false,
   sortField: 'position',
@@ -53,23 +60,54 @@ export const useLessonStore = create<LessonState>((set, get) => ({
   isDirty: false,
   editBuffer: null,
 
+  setLessonContext(programId, courseId) {
+    set({ programId, courseId });
+  },
+
+  async reloadCards() {
+    const { lessonId } = get();
+    if (!lessonId) return;
+    set({ isLoadingCards: true });
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*, answers:card_answers(*), modes:card_modes(*)')
+      .eq('lesson_id', lessonId)
+      .order('position');
+    if (error) { console.error('reloadCards error', error); set({ isLoadingCards: false }); return; }
+    set({ cards: (data ?? []) as AdminCard[], isLoadingCards: false });
+  },
+
   async loadLesson(id) {
     if (get().lessonId === id) return;
     set({ isLoadingCards: true, cards: [], lessonId: id, editBuffer: null, isDirty: false, selectedCardIds: new Set() });
 
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*, answers:card_answers(*), modes:card_modes(*)')
-      .eq('lesson_id', id)
-      .order('position');
+    const [cardsRes, lessonRes] = await Promise.all([
+      supabase
+        .from('cards')
+        .select('*, answers:card_answers(*), modes:card_modes(*)')
+        .eq('lesson_id', id)
+        .order('position'),
+      supabase
+        .from('lessons')
+        .select('course_id, course:courses(program_id)')
+        .eq('id', id)
+        .single(),
+    ]);
 
-    if (error) {
-      console.error('loadLesson error', error);
+    if (cardsRes.error) {
+      console.error('loadLesson error', cardsRes.error);
       set({ isLoadingCards: false });
       return;
     }
 
-    set({ cards: (data ?? []) as AdminCard[], isLoadingCards: false });
+    const lesson = lessonRes.data;
+    const course = lesson ? (Array.isArray(lesson.course) ? lesson.course[0] : lesson.course) : null;
+    set({
+      cards: (cardsRes.data ?? []) as AdminCard[],
+      isLoadingCards: false,
+      courseId:  lesson?.course_id ?? get().courseId,
+      programId: (course as { program_id: string } | null)?.program_id ?? get().programId,
+    });
   },
 
   setSort(field, dir) {
@@ -214,7 +252,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       .insert({
         lesson_id: lessonId,
         question: '',
-        card_type: 'SC',
+        card_type: CardTypes.SINGLE_CARD.key,
         position: maxPos + 1,
       })
       .select('*, answers:card_answers(*), modes:card_modes(*)')

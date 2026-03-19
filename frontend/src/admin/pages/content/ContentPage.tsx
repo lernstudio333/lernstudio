@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Accordion, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
+import { useLessonStore } from '../../stores/lessonStore';
 import type { AdminProgram, AdminCourse, AdminLesson } from '../../types/admin.types';
 
 interface ProgramNode extends AdminProgram {
@@ -13,6 +14,7 @@ function ContentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const setLessonContext = useLessonStore(s => s.setLessonContext);
 
   useEffect(() => {
     async function load() {
@@ -68,7 +70,7 @@ function ContentPage() {
                       key={lesson.id}
                       className="px-4 py-2 hover-bg-light cursor-pointer border-top small text-start"
                       style={{ cursor: 'pointer' }}
-                      onClick={() => navigate(`/admin/lessons/${lesson.id}`)}
+                      onClick={() => { setLessonContext(program.id, course.id); navigate(`/admin/lessons/${lesson.id}`); }}
                     >
                       {lesson.title}
                     </div>

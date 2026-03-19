@@ -1,0 +1,7 @@
+project_id = "xmhwvmzpbomgkeavjerk"
+
+[functions.export-csv]
+verify_jwt = false
+
+[functions.import-cards]
+verify_jwt = false
