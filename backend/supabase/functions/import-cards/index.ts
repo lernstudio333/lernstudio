@@ -1,12 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
 import Papa from "npm:papaparse@5";
 import { validateCsv } from "../../../../shared/features/csv/CsvValidator.ts";
 import type { CsvImportContext, CsvMappedCard } from "../../../../shared/features/csv/csvImportTypes.ts";
-
-const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY         = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+import { createSupabaseUserClient, createSupabaseAdminClient } from "../_shared/supabaseClients.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,16 +14,14 @@ serve(async (req) => {
   if (req.method !== "POST")    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   // Auth
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return jsonError("Missing Authorization header", 401);
+  let userClient;
+  try { userClient = createSupabaseUserClient(req); }
+  catch { return jsonError("Missing Authorization header", 401); }
 
-  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  });
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return jsonError("Unauthorized", 401);
 
-  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const adminClient = createSupabaseAdminClient();
   const { data: profile } = await adminClient
     .from("profiles").select("role").eq("id", user.id).single();
   if (!profile || !["admin", "editor"].includes(profile.role ?? "")) {

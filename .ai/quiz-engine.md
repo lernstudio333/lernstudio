@@ -202,9 +202,9 @@ When a milestone is reached:
 The quiz engine runs entirely on the **frontend** during a session. The backend is responsible for storage and supply of data; the frontend handles all runtime quiz logic.
 
 **Backend responsibilities:**
-- Provides the cards for a lesson
-- Provides a pool of distractor answers (used in multiple choice)
-- Stores learning progress (score, error counts, last studied date) per user–card combination
+- Selects study cards for the session based on quiz mode and user learning state (`fetch-study-cards` Edge Function)
+- Provides a pool of distractor **cards** (not just answers) for multiple-choice options
+- Stores learning progress (score, error counts, last studied date) per user–card combination (`batch-update-learnings` Edge Function)
 
 **Frontend quiz engine responsibilities:**
 - Runs the learning session loop
@@ -214,4 +214,33 @@ The quiz engine runs entirely on the **frontend** during a session. The backend 
 - Updates learning scores locally during the session
 
 **At session end:**
-The frontend sends all updated learning data (scores, error counts) to the backend in a single batch update. This ensures the backend always reflects the final state after a completed session.
+The frontend sends the full updated learning state (final scores, complete `errors_by_type` dict) to the backend in a single batch update. The backend replaces the stored state — it does not accumulate deltas. Score is floored at 0 server-side.
+
+---
+
+## 11. Card Selection Algorithm
+
+Implemented in `shared/features/study/selectionAlgorithm.ts` (pure, testable). The Edge Function `fetch-study-cards` calls it after fetching DB data.
+
+### Study Card Selection
+
+| Mode | Logic |
+|------|-------|
+| **NEW** | 1. In-progress cards (`0 ≤ score < THRESHOLD`, not reviewed in last 2h), sorted descending by score (near-complete first). 2. Fill remaining slots with cards never studied (`learning = null`). Returns at most `studyCardCount` cards; fewer if not enough available. |
+| **REPEAT** | Cards with `score ≥ THRESHOLD`, sorted by urgency `(daysPassed + 1 + jitter) / score` descending. High urgency = overdue + low score. |
+| **LIST** | All cards in lesson order. No count limit. User browses with full learning state visible. |
+
+All modes support `favoriteOnly` filter (`favoriteDate != null`).
+
+Constants: `THRESHOLD_NEW_VS_REPEAT = 7`, `MIN_CARD_REVIEW_INTERVAL_ms = 2h`, `NUMBER_CARDS_PER_SESSION = 20`.
+
+> **Note:** The REPEAT urgency formula is an intentional fix from the legacy algorithm (which had the sort direction inverted). A future improvement is to replace the linear `daysPassed` term with a logarithmic/exponential scale.
+
+### Distractor Card Selection
+
+Distractors are full cards (not just answer strings — this differs from the legacy implementation).
+
+1. Try cards from the **same lesson**, excluding selected study cards — random shuffle
+2. If not enough, expand to **sister lessons** in the same course
+3. Target count: `distractorCardCount` (default `NUMBER_DISTRACTOR_CARDS = 100`)
+4. Future: weight toward cards of same type, similar answer length, same tags

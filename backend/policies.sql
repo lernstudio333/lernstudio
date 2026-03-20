@@ -240,6 +240,36 @@ using (
 -- Membership Permission
 -- =========================================
 
+-- =========================================
+-- User Cards Learnings Permission
+-- =========================================
+
+alter table user_cards_learnings enable row level security;
+
+create policy "learnings read"
+on user_cards_learnings
+for select
+using (
+  user_id = auth.uid()
+  or is_admin()
+);
+
+create policy "learnings insert own"
+on user_cards_learnings
+for insert
+with check (user_id = auth.uid());
+
+create policy "learnings update own"
+on user_cards_learnings
+for update
+using  (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+
+-- =========================================
+-- Membership Permission
+-- =========================================
+
 -- TODO: add write policies
 
 alter table program_memberships enable row level security;

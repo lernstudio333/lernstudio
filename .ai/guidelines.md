@@ -99,6 +99,54 @@ This document serves as a shared reference for developers and AI agents working 
 - Password input: `type="password"` + `name="password"` + `autoComplete="current-password"`
 - Required for browser password manager autofill compatibility.
 
+### 4.6 Publishable Key vs JWT — Strict Separation
+
+> **Warning:** Most external docs, examples, and AI training data use the term `anon key`. This is deprecated terminology in this project. Always treat `anon key` guidance as outdated and adapt before applying.
+
+| Identity | Name in this project | Purpose |
+|----------|---------------------|---------|
+| App identity | `VITE_SUPABASE_PUBLISHABLE_KEY` (frontend env var) | Initialises the Supabase JS client only |
+| App identity | `SUPABASE_ANON_KEY` (Edge Function env var, auto-injected by Supabase infra) | Same key — legacy name used by Supabase's injection mechanism |
+| User identity | JWT (`Authorization: Bearer <token>`) | Authenticates the user — always passed explicitly |
+
+**Rules:**
+- The publishable key does **not** authenticate users — it only identifies the app to Supabase.
+- The JWT (`session.access_token`) is always required for protected operations — never rely on the key alone.
+- Sending the publishable key as `apikey` alongside the JWT is **valid** (Supabase's own `functions.invoke()` does this), but **not required** when using raw `fetch()`.
+- **Never** send the publishable key as a substitute for the JWT.
+
+**Frontend → Edge Function call pattern:**
+```ts
+const { data: { session } } = await supabase.auth.getSession();
+fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/<function-name>`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${session.access_token}`,  // user identity (JWT)
+  },
+  body: JSON.stringify(payload),
+});
+```
+
+**Edge Function auth pattern — use the shared helpers:**
+```ts
+import { createSupabaseUserClient, createSupabaseAdminClient }
+  from "../_shared/supabaseClients.ts";
+
+// Step 1: verify JWT → get user (throws if Authorization header is missing)
+let userClient;
+try { userClient = createSupabaseUserClient(req); }
+catch { return jsonError("Missing Authorization header", 401); }
+
+const { data: { user } } = await userClient.auth.getUser();
+// userId = user.id — never take userId from the request body
+
+// Step 2: service role client for DB writes (bypasses RLS)
+const adminClient = createSupabaseAdminClient();
+```
+
+The helpers live in `backend/supabase/functions/_shared/supabaseClients.ts`. Internally they alias `SUPABASE_ANON_KEY` → publishable key so the legacy env var name never leaks into function code.
+
 ---
 
 ## 5. Coding Conventions
@@ -131,6 +179,10 @@ This document serves as a shared reference for developers and AI agents working 
   ```ts
   import { validateCsv } from '../../../../shared/features/csv/CsvValidator.ts';
   ```
+
+### 6.3 Shared Edge Function Utilities
+- Common helpers live in `backend/supabase/functions/_shared/` (underscore prefix = not deployed as a function).
+- **`_shared/supabaseClients.ts`** — `createSupabaseUserClient(req)` and `createSupabaseAdminClient()`. Always use these instead of calling `createClient()` directly in function code. See §4.6 for the auth model.
 
 ---
 

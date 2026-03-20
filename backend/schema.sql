@@ -149,3 +149,18 @@ CREATE TABLE public.tags (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT tags_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.user_cards_learnings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  card_id uuid NOT NULL,
+  score integer NOT NULL DEFAULT 0,
+  errors_by_type jsonb NOT NULL DEFAULT '{}'::jsonb,
+  last_visited timestamp with time zone,
+  favorite_date timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_cards_learnings_pkey PRIMARY KEY (id),
+  CONSTRAINT user_cards_learnings_user_card_unique UNIQUE (user_id, card_id),
+  CONSTRAINT user_cards_learnings_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT user_cards_learnings_card_id_fkey FOREIGN KEY (card_id) REFERENCES public.cards(id)
+);
