@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BsCollection, BsImages, BsPeopleFill } from 'react-icons/bs';
+import { BsCollection, BsImages, BsPeopleFill, BsBarChartFill } from 'react-icons/bs';
 import { useAuth } from '../../contexts/AuthContext';
 
 const navItems = [
-  { to: '/admin/content', icon: <BsCollection />, label: 'Content' },
-  { to: '/admin/media',   icon: <BsImages />,     label: 'Media' },
-  { to: '/admin/users',   icon: <BsPeopleFill />, label: 'Users' },
+  { to: '/admin/content',   icon: <BsCollection />,   label: 'Content',   adminOnly: false },
+  { to: '/admin/media',     icon: <BsImages />,       label: 'Media',     adminOnly: false },
+  { to: '/admin/users',     icon: <BsPeopleFill />,   label: 'Users',     adminOnly: false },
+  { to: '/admin/learnings', icon: <BsBarChartFill />, label: 'Learnings', adminOnly: true  },
 ];
 
 function AdminSidebar() {
@@ -38,7 +39,7 @@ function AdminSidebar() {
 
       {/* Nav items */}
       <ul className="nav flex-column gap-1" style={{ flex: 1 }}>
-        {navItems.map(item => (
+        {navItems.filter(item => !item.adminOnly || role === 'admin').map(item => (
           <li className="nav-item" key={item.to}>
             <NavLink
               to={item.to}

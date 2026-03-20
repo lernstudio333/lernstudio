@@ -5,6 +5,7 @@ import ContentPage from './pages/content/ContentPage';
 import LessonWorkspace from './pages/content/LessonWorkspace';
 import MediaPage from './pages/media/MediaPage';
 import UsersPage from './pages/users/UsersPage';
+import LearningsPage from './pages/learnings/LearningsPage';
 
 function AdminApp() {
   const { isLoggedIn, isInitializing, role } = useAuth();
@@ -23,6 +24,9 @@ function AdminApp() {
         <Route path="lessons/:lessonId/cards/:cardId" element={<LessonWorkspace />} />
         <Route path="media" element={<MediaPage />} />
         <Route path="users" element={<UsersPage />} />
+        {role === 'admin' && (
+          <Route path="learnings" element={<LearningsPage />} />
+        )}
       </Route>
     </Routes>
   );

@@ -112,7 +112,7 @@ This document serves as a shared reference for developers and AI agents working 
 **Rules:**
 - The publishable key does **not** authenticate users — it only identifies the app to Supabase.
 - The JWT (`session.access_token`) is always required for protected operations — never rely on the key alone.
-- Sending the publishable key as `apikey` alongside the JWT is **valid** (Supabase's own `functions.invoke()` does this), but **not required** when using raw `fetch()`.
+- The publishable key **must** also be sent as `apikey` in all Edge Function calls. With the new `sb_publishable_...` key format the gateway requires it for project identification; the old JWT-format anon key was self-identifying so it appeared optional, but it is not.
 - **Never** send the publishable key as a substitute for the JWT.
 
 **Frontend → Edge Function call pattern:**
@@ -122,10 +122,19 @@ fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/<function-name>`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${session.access_token}`,  // user identity (JWT)
+    'Authorization': `Bearer ${session.access_token}`,           // user identity (JWT)
+    'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,     // project identity (required)
   },
   body: JSON.stringify(payload),
 });
+```
+
+**Edge Function CORS headers must allow `apikey`:**
+```ts
+const corsHeaders = {
+  "Access-Control-Allow-Origin":  "*",
+  "Access-Control-Allow-Headers": "authorization, content-type, x-client-info, apikey",
+};
 ```
 
 **Edge Function auth pattern — use the shared helpers:**
@@ -183,6 +192,23 @@ The helpers live in `backend/supabase/functions/_shared/supabaseClients.ts`. Int
 ### 6.3 Shared Edge Function Utilities
 - Common helpers live in `backend/supabase/functions/_shared/` (underscore prefix = not deployed as a function).
 - **`_shared/supabaseClients.ts`** — `createSupabaseUserClient(req)` and `createSupabaseAdminClient()`. Always use these instead of calling `createClient()` directly in function code. See §4.6 for the auth model.
+
+### 6.4 `verify_jwt = false` — Required for All Functions
+
+**Every edge function in this project must have `verify_jwt = false` in `backend/supabase/config.toml`.**
+
+```toml
+[functions.<function-name>]
+verify_jwt = false
+```
+
+**Why:** Supabase's gateway JWT verifier uses a local HS256 check against the project's JWT secret. Newer Supabase projects issue ES256 tokens. These two algorithms are incompatible — the gateway rejects valid tokens with `{code: 401, message: "Invalid JWT"}` before the function code even runs.
+
+**Is this a security problem? No.** The gateway check is a shallow convenience shortcut (signature + expiry only). Our functions use `auth.getUser()` instead, which calls the Supabase Auth API live and is strictly stronger:
+- Validates signature and expiry ✓
+- Detects revoked sessions ✓ (gateway cannot do this)
+
+**Rule:** When adding a new edge function, always register it in `config.toml` with `verify_jwt = false` in the same commit. Functions missing from `config.toml` default to `verify_jwt = true` and will fail at runtime.
 
 ---
 
@@ -303,10 +329,21 @@ The system enforces the invariant `domain → CSV → domain ≈ identity` via r
 ---
 
 ## 8. SQL / Supabase Guidance
-- Keep **migrations incremental and versioned**.  
-- Seeds are for demo/development data only.  
-- Policies should be **documented, readable, and DRY**.  
+- Keep **migrations incremental and versioned**.
+- Seeds are for demo/development data only.
+- Policies should be **documented, readable, and DRY**.
 - For batch or dynamic policy generation, prefer **SQL scripts using templates or helper functions**.
+
+### 8.1 Reference File Sync
+The `backend/` folder contains three reference SQL files that must be kept in sync whenever a migration adds or changes functions or policies:
+
+| File | What to sync |
+|------|-------------|
+| `functions.sql` | Any `CREATE FUNCTION` added via migration — use `DROP FUNCTION IF EXISTS` + `CREATE` (idempotent) |
+| `policies.sql` | Any `CREATE POLICY` or `ALTER TABLE … ENABLE ROW LEVEL SECURITY` added via migration |
+| `schema.sql` | **Handled manually by the developer** after running migrations (Supabase schema export) |
+
+**Rule:** After writing a migration that adds SQL functions or policies, always update `functions.sql` and/or `policies.sql` in the same change. Do not wait for a separate cleanup step.
 
 ---
 
@@ -321,5 +358,5 @@ Always refer to these `.ai/` files for grounding and consistency:
 | `admin-ui.md` | Admin UX, lesson workspace, card workflow |
 | `CLAUDE.md` | Legacy SPA context, state machine, fetch logic |
 | `roadmap.md` | Development roadmap and future planning |
-| `guidelines.md §6` | Edge Function deployment commands and shared module import rules |
+| `guidelines.md §6` | Edge Function deployment, shared module imports, `verify_jwt` requirement |
 | `guidelines.md §7` | CSV import/export architecture, validation layers, mismatch flow |

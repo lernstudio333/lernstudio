@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.import-cards]
 verify_jwt = false
+
+[functions.list-cards-admin]
+verify_jwt = false
+
+[functions.batch-update-learnings]
+verify_jwt = false
+
+[functions.fetch-study-cards]
+verify_jwt = false
