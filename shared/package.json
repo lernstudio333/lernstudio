@@ -10,7 +10,8 @@
     "./enums":      "./core/enums.ts",
     "./types":      "./types/database.types.ts",
     "./cards":               "./features/cards/types.ts",
-    "./features/learnings":  "./features/learnings/index.ts"
+    "./features/learnings":  "./features/learnings/index.ts",
+    "./features/programs":   "./features/programs/index.ts"
   },
   "dependencies": {
     "zod": "^3.23.0"

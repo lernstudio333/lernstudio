@@ -80,7 +80,7 @@ export interface ProgramRow {
   ext_id:       string | null;
   title:        string;
   description:  string | null;
-  teaser_image: string | null;
+  teaser_image: string | null; // uuid FK → media(id)
   teaser_text:  string | null;
   created_by:   string | null;
   position:     number;

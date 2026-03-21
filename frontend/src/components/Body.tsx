@@ -1,55 +1,53 @@
 import { useState } from "react";
-import CourseSelector from './CourseSelector'
-import LearnSession from './LearnSession'
-import CardList from './CardList'
+import LandingPage from './LandingPage';
+import LearnSession from './LearnSession';
+import CardList from './CardList';
 import { useAuth } from '../contexts/AuthContext';
-
+import type { StudyAction } from 'shared/features/programs';
 import '../App.css';
 
-function Body(props: {audio:any, setCounter:Function}) {
+function Body(props: { audio: any, setCounter: Function }) {
     const { token } = useAuth();
-    const [activeComp, setActiveComp] = useState<MainState>('CourseSelector');
+    const [activeComp, setActiveComp]           = useState<MainState>('CourseSelector');
     const [filterFavourites, setFilterFavourites] = useState<Boolean>(false);
-    const [learnMethod, setLearnMethod] = useState<LearnMethod>('repeat');
-    const [selectedCourse, setSelectedCourse] = useState<string|null>(null);
-    const [courses, setCourses] = useState<Doc[]>([]);
+    const [learnMethod, setLearnMethod]          = useState<LearnMethod>('repeat');
+    const [selectedCourse, setSelectedCourse]    = useState<string | null>(null);
+
+    // New lesson-based navigation — used by Step 17's quiz engine
+    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+    const [studyAction, setStudyAction]           = useState<StudyAction>('REPEAT');
+
+    function handleLessonAction(lessonId: string, action: StudyAction) {
+        setSelectedLessonId(lessonId);
+        setStudyAction(action);
+        // TODO Step 17: setActiveComp('LearnSession') once new quiz engine is wired up
+        console.log('[Step 17 TODO] lesson action:', action, 'lessonId:', lessonId);
+    }
 
     return <>
-        {activeComp == "CourseSelector" ?
-            <CourseSelector
-            audio = {props.audio}
-            setActiveComp={setActiveComp}
-            selectedCourse={selectedCourse}
-            filterFavourites={filterFavourites}
-            setFilterFavourites={setFilterFavourites}
-            learnMethod={learnMethod}
-            setLearnMethod={setLearnMethod}
-            setSelectedCourse={setSelectedCourse}
-            token={token}
-            courses={courses}
-            setCourses={setCourses}
-           />
-        : ""}
-        {activeComp == "LearnSession" ?
+        {activeComp === "CourseSelector" &&
+            <LandingPage onLessonAction={handleLessonAction} />
+        }
+        {activeComp === "LearnSession" &&
             <LearnSession
-            audio = {props.audio}
-            setActiveComp={setActiveComp}
-            selectedCourse={selectedCourse}
-            filterFavourites={filterFavourites}
-            learnMethod={learnMethod}
-            setCounter={props.setCounter}
-            token={token}
+                audio={props.audio}
+                setActiveComp={setActiveComp}
+                selectedCourse={selectedCourse}
+                filterFavourites={filterFavourites}
+                learnMethod={learnMethod}
+                setCounter={props.setCounter}
+                token={token}
             />
-        : ""}
-        {activeComp == "List" ?
+        }
+        {activeComp === "List" &&
             <CardList
-            setActiveComp={setActiveComp}
-            selectedCourse={selectedCourse}
-            filterFavourites={filterFavourites}
-            token={token}
+                setActiveComp={setActiveComp}
+                selectedCourse={selectedCourse}
+                filterFavourites={filterFavourites}
+                token={token}
             />
-        : ""}
-    </>
+        }
+    </>;
 }
 
 export default Body;

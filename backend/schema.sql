@@ -138,10 +138,11 @@ CREATE TABLE public.programs (
   position integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  teaser_image text,
   teaser_text text,
+  teaser_image uuid,
   CONSTRAINT programs_pkey PRIMARY KEY (id),
-  CONSTRAINT programs_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
+  CONSTRAINT programs_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id),
+  CONSTRAINT programs_teaser_image_fkey FOREIGN KEY (teaser_image) REFERENCES public.media(id)
 );
 CREATE TABLE public.tags (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -160,7 +161,6 @@ CREATE TABLE public.user_cards_learnings (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT user_cards_learnings_pkey PRIMARY KEY (id),
-  CONSTRAINT user_cards_learnings_user_card_unique UNIQUE (user_id, card_id),
   CONSTRAINT user_cards_learnings_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT user_cards_learnings_card_id_fkey FOREIGN KEY (card_id) REFERENCES public.cards(id)
 );
