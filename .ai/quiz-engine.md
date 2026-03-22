@@ -124,11 +124,12 @@ A filter determines **whether a quizzing rule is applicable** to a specific card
 
 Filters return a boolean: `true` means the rule can be applied, `false` means it should be skipped.
 
-Example filter:
+Implemented filters:
 
 | Filter | Description |
 |---|---|
-| `shortAnswer` | Returns `true` only if the answer text is short enough for typed input to be practical. Prevents `TYPED_ANSWER` mode from being used for long or complex answers. |
+| `allowTypedAnswer` | Passes only when `answer` is a single-element `string[]` whose sole item is short enough for typed input (`length ≤ MAX_TYPED_ANSWER_LENGTH`). Prevents `TYPED_ANSWER` mode for long or multi-part answers. |
+| `allowArrangeOrder` | Passes only when `answer` is a `string[]` with at least `MIN_ARRANGE_ORDER_PARTS` elements. Prevents `ARRANGE_ORDER` mode for single-answer cards. |
 
 Filters allow card-type rules to be defined broadly while still excluding individual cards where the mode would not make sense.
 
@@ -194,6 +195,35 @@ When a milestone is reached:
 - The reward symbol is shown in the header bar
 - A brief animation plays near the score (e.g. sparks or confetti)
 - Optional audio feedback is played
+
+---
+
+## 9b. Card Preparation Pipeline (Implementation)
+
+Before a card is quizzed, it passes through a fixed pipeline in `sessionUtils.ts`:
+
+```
+StudyCard (from DB)
+ → toBasicCard()           — normalises to BasicCard; text answers always string[]
+ → selectQuizzingRule()    — picks the applicable QuizzingRule (see §3)
+ → applyRule()             — applies the rule's transformer (if any)
+ → BasicCard (display)     — passed to the quiz mode component
+```
+
+**`toBasicCard` invariant:** text answers are **always returned as `string[]`**, never a plain `string`. This ensures all transformers and filters can rely on `Array.isArray(answer)` without special-casing.
+
+**`selectQuizzingRule`** lives in `shared/core/ruleSelection.ts` (pure, tested). It uses a shuffle + retry loop over the card type's quizzing rules, respecting `min_score`, `supersede` mode, filters, and an optional runtime `viable` callback (e.g. "enough distractors available for MC?").
+
+**Distractor constraint:** `buildMcOptions` only accepts distractors whose `cardType` matches the quizzed card. This prevents type-specific transformers (e.g. `pickSynAnswerFirst` asserting `SYNONYM`) from being applied to incompatible cards.
+
+### Card Validation
+
+`isCardQuizzable(card)` (in `shared/features/study/cardValidation.ts`) filters out cards that cannot be quizzed:
+- Question is empty or whitespace → excluded
+- Text cards with no non-empty answers → excluded
+- `IMAGES` cards with no `imagePath` answers → excluded
+
+Applied in both the `fetch-study-cards` edge function (server-side, for study cards and distractors) and in `QuizSession.tsx` (client-side, as a safety net after fetch).
 
 ---
 

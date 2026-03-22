@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.fetch-programs]
 verify_jwt = false
+
+[functions.upload-media]
+verify_jwt = false

@@ -2,7 +2,7 @@
 
 ## Layout
 
-- **Global Sidebar**: Content / Media / Users  
+- **Global Sidebar**: Content / Media / Users / Learnings
 - **Content Browser**: collapsible tree → select Lesson  
 - **Lesson Workspace**:
   - Header: breadcrumb (Program / Course / Lesson), editable title, optional switch lesson dropdown
@@ -33,12 +33,21 @@
 
 ---
 
+## Learnings Page
+
+- Top menu entry “Learnings” (admin/editor only)
+- Sortable, filterable, paginated table of all `user_cards_learnings` rows
+- Backed by `admin_list_learnings` / `admin_count_learnings` RPCs (migration 007, `list-cards-admin` edge function)
+
+---
+
 ## Media Gallery
 
 - Top menu entry “Media”
-- Supports upload, delete, search
+- Supports upload (drag-and-drop or multi-file dialog), delete, search
 - *(TODO: rename not yet implemented)*
-- Bucket name configured via `VITE_MEDIA_BUCKET` env var (currently `cards-media`)
+- Bucket name is a backend concern — configured via the `MEDIA_BUCKET` Supabase secret (currently `cards-media`); the frontend does not pass it
+- Upload handled by the `upload-media` edge function: deduplicates filenames server-side (`foo.png` → `foo(1).png`), inserts into `media` table
 - Operates on Supabase Storage bucket + `media` table for metadata (`bucket`, `path`, `media_type`)
 
 ### Media Deletion

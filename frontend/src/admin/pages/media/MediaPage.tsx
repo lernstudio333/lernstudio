@@ -12,22 +12,23 @@ interface MediaItem extends AdminMedia {
 }
 
 interface UsageEntry {
-  lesson_id: string;
+  lesson_id:    string;
   lesson_title: string;
-  card_id: string;
+  card_id:      string;
   card_question: string;
 }
 
 function MediaPage() {
   const purgeMediaFromCards = useLessonStore(s => s.purgeMediaFromCards);
-  const [items, setItems] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<MediaItem | null>(null);
-  const [usage, setUsage] = useState<UsageEntry[]>([]);
-  const [loadingUsage, setLoadingUsage] = useState(false);
+  const [items,           setItems]           = useState<MediaItem[]>([]);
+  const [loading,         setLoading]         = useState(true);
+  const [error,           setError]           = useState<string | null>(null);
+  const [search,          setSearch]          = useState('');
+  const [uploading,       setUploading]       = useState(false);
+  const [isDragging,      setIsDragging]      = useState(false);
+  const [pendingDelete,   setPendingDelete]   = useState<MediaItem | null>(null);
+  const [usage,           setUsage]           = useState<UsageEntry[]>([]);
+  const [loadingUsage,    setLoadingUsage]    = useState(false);
   const [overrideChecked, setOverrideChecked] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,28 +48,54 @@ function MediaPage() {
     setLoading(false);
   }
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) return;
     setUploading(true);
-    const path = `${Date.now()}-${file.name}`;
-    console.log('[MediaPage] uploading to bucket:', MEDIA_BUCKET, 'path:', path);
-    const { data: uploadData, error: uploadErr } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file);
-    console.log('[MediaPage] storage upload result:', { uploadData, uploadErr });
-    if (uploadErr) { setError(uploadErr.message); setUploading(false); return; }
+    setError(null);
 
-    const insertPayload = {
-      bucket: MEDIA_BUCKET,
-      path,
-      media_type: file.type.startsWith('video/') ? 'video' : 'image',
-    };
-    console.log('[MediaPage] inserting into media table:', insertPayload);
-    const { data: dbData, error: dbErr } = await supabase.from('media').insert(insertPayload).select();
-    console.log('[MediaPage] media insert result:', { dbData, dbErr });
-    if (dbErr) { setError(dbErr.message); setUploading(false); return; }
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file, file.name);
+    }
+
+    const { data, error: fnErr } = await supabase.functions.invoke<{
+      uploaded: AdminMedia[];
+      errors:   { file: string; error: string }[];
+    }>('upload-media', { body: formData });
+
+    if (fnErr) {
+      setError(fnErr.message);
+    } else if (data?.errors?.length) {
+      setError(data.errors.map(e => `${e.file}: ${e.error}`).join('\n'));
+    }
+
     await load();
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    uploadFiles(Array.from(e.target.files ?? []));
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter(
+      f => f.type.startsWith('image/') || f.type.startsWith('video/'),
+    );
+    uploadFiles(files);
   }
 
   async function handleDeleteClick(item: MediaItem) {
@@ -84,7 +111,7 @@ function MediaPage() {
     if (!pendingDelete) return;
     const { error: rpcErr } = await supabase.rpc('delete_media_safe', {
       p_media_id: pendingDelete.id,
-      override: usage.length > 0,
+      override:   usage.length > 0,
     });
     if (rpcErr) { setError(rpcErr.message); return; }
     await supabase.storage.from(MEDIA_BUCKET).remove([pendingDelete.path]);
@@ -113,7 +140,7 @@ function MediaPage() {
           <input
             className="form-control form-control-sm"
             style={{ width: '200px' }}
-            placeholder="Search by tag…"
+            placeholder="Search…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -125,11 +152,42 @@ function MediaPage() {
           >
             {uploading ? <Spinner animation="border" size="sm" /> : 'Upload'}
           </Button>
-          <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={handleUpload} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            className="d-none"
+            onChange={handleFileInput}
+          />
         </div>
       </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {/* Drop zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => !uploading && fileInputRef.current?.click()}
+        className="mb-3 rounded d-flex align-items-center justify-content-center"
+        style={{
+          border:     `2px dashed ${isDragging ? 'var(--bs-primary)' : 'var(--bs-border-color)'}`,
+          background: isDragging ? 'var(--bs-primary-bg-subtle)' : undefined,
+          minHeight:  72,
+          cursor:     uploading ? 'default' : 'pointer',
+          transition: 'border-color 0.15s, background 0.15s',
+          color:      isDragging ? 'var(--bs-primary)' : 'var(--bs-secondary-color)',
+          fontSize:   '0.875rem',
+          userSelect: 'none',
+        }}
+      >
+        {uploading
+          ? <><Spinner animation="border" size="sm" className="me-2" />Uploading…</>
+          : 'Drop images here, or click to select multiple files'
+        }
+      </div>
+
+      {error && <Alert variant="danger" dismissible onClose={() => setError(null)}>{error}</Alert>}
 
       {filtered.length === 0 && <div className="text-muted">No media found</div>}
 
@@ -148,7 +206,7 @@ function MediaPage() {
                 title="Delete"
               >×</button>
             </div>
-            <div className="text-muted small mt-1 text-truncate">{item.path}</div>
+            <div className="text-muted small mt-1 text-truncate" title={item.path}>{item.path}</div>
           </div>
         ))}
       </div>
@@ -177,9 +235,7 @@ function MediaPage() {
               ).map(([lessonId, { title, cards }]) => (
                 <li key={lessonId}>
                   {cards.length} answer(s) in lesson &ldquo;{title}&rdquo;
-                  <ul>
-                    {cards.map((q, i) => <li key={i}>{q}</li>)}
-                  </ul>
+                  <ul>{cards.map((q, i) => <li key={i}>{q}</li>)}</ul>
                 </li>
               ))}
             </ul>
