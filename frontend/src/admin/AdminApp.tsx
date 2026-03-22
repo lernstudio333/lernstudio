@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import './admin.css';
 import { useAuth } from '../contexts/AuthContext';
 import AdminLayout from './AdminLayout';
 import ContentPage from './pages/content/ContentPage';
