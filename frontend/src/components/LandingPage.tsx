@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { ProgramWithCourses, FetchProgramsResponse, StudyAction, RecentLesson, FetchRecentLessonsResponse } from 'shared/features/programs';
 import ProgramView from './ProgramView';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import './LandingPage.css';
 
 // ── Recent lesson skeleton row ───────────────────────────────────
 
@@ -35,9 +37,8 @@ function RecentLessonRow({
     <div className={`d-flex align-items-center gap-3 py-2${isLast ? '' : ' border-bottom'}`}>
       <div className="flex-grow-1 overflow-hidden">
         <div
-          className="text-muted small text-truncate"
+          className="text-muted small text-truncate recent-breadcrumb"
           title={breadcrumb}
-          style={{ fontSize: '0.75rem' }}
         >
           {breadcrumb}
         </div>
@@ -46,8 +47,7 @@ function RecentLessonRow({
         </div>
       </div>
       <button
-        className={`btn btn-sm flex-shrink-0 ${isNew ? 'btn-primary' : 'btn-outline-secondary'}`}
-        style={{ minWidth: '6rem' }}
+        className={`btn btn-sm flex-shrink-0 recent-lesson-btn ${isNew ? 'btn-primary' : 'btn-outline-secondary'}`}
         onClick={() => onAction(lesson.lessonId, lesson.studyMode)}
       >
         {isNew ? 'Study New' : 'Repeat'}
@@ -61,7 +61,7 @@ function RecentLessonRow({
 function ProgramCardSkeleton() {
   return (
     <div className="col">
-      <div className="card h-100 placeholder-glow">
+      <div className="card h-100 shadow-sm border-0 bg-light placeholder-glow">
         <div
           className="placeholder"
           style={{ height: 160, borderRadius: '0.375rem 0.375rem 0 0' }}
@@ -84,10 +84,9 @@ function ProgramCard({ program, onClick }: { program: ProgramWithCourses; onClic
   return (
     <div className="col">
       <div
-        className="card h-100 shadow-sm"
+        className="card h-100 shadow-sm border-0 bg-light program-card"
         role="button"
         tabIndex={0}
-        style={{ cursor: 'pointer' }}
         onClick={onClick}
         onKeyDown={(e) => e.key === 'Enter' && onClick()}
       >
@@ -95,13 +94,10 @@ function ProgramCard({ program, onClick }: { program: ProgramWithCourses; onClic
           ? <img
               src={program.teaserImage}
               alt={program.title}
-              style={{ height: 160, width: '100%', objectFit: 'cover', borderRadius: '0.375rem 0.375rem 0 0' }}
+              className="program-card-img"
             />
-          : <div
-              className="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
-              style={{ height: 160, borderRadius: '0.375rem 0.375rem 0 0', fontSize: '3rem' }}
-            >
-              📚
+          : <div className="d-flex align-items-center justify-content-center program-card-placeholder">
+              <i className="bi bi-collection" />
             </div>
         }
         <div className="card-body d-flex flex-column">
@@ -167,7 +163,7 @@ export default function LandingPage({ onLessonAction, initialProgram = null, ini
       {(recentLessons === null || recentLessons.length > 0) && (
         <section className="mb-5">
           <h5 className="mb-3">Continue Studying</h5>
-          <div className="border rounded px-3 py-1">
+          <div className="shadow-sm rounded bg-white px-3 py-1">
             {recentLessons === null
               ? Array.from({ length: 3 }).map((_, i) => <RecentLessonSkeleton key={i} />)
               : recentLessons.map((lesson, i) => (
