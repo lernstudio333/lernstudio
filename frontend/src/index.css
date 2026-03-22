@@ -1,3 +1,15 @@
+/* ── Shared utilities ───────────────────────────────────────────── */
+
+/* Outline buttons use white background at rest; hover/active use Bootstrap defaults */
+[class*="btn-outline-"]:not(:hover):not(:focus):not(:active):not(.active) {
+  background-color: #fff;
+}
+
+
+.card-subtle {
+  background-color: #fcfcfc;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

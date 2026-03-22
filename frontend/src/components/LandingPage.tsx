@@ -61,7 +61,7 @@ function RecentLessonRow({
 function ProgramCardSkeleton() {
   return (
     <div className="col">
-      <div className="card h-100 shadow-sm border-0 bg-light placeholder-glow">
+      <div className="card h-100 shadow-sm border-0 card-subtle placeholder-glow">
         <div
           className="placeholder"
           style={{ height: 160, borderRadius: '0.375rem 0.375rem 0 0' }}
@@ -84,7 +84,7 @@ function ProgramCard({ program, onClick }: { program: ProgramWithCourses; onClic
   return (
     <div className="col">
       <div
-        className="card h-100 shadow-sm border-0 bg-light program-card"
+        className="card h-100 shadow-sm border-0 card-subtle program-card"
         role="button"
         tabIndex={0}
         onClick={onClick}
@@ -163,7 +163,7 @@ export default function LandingPage({ onLessonAction, initialProgram = null, ini
       {(recentLessons === null || recentLessons.length > 0) && (
         <section className="mb-5">
           <h5 className="mb-3">Continue Studying</h5>
-          <div className="shadow-sm rounded bg-white px-3 py-1">
+          <div className="shadow-sm rounded card-subtle px-3 py-1">
             {recentLessons === null
               ? Array.from({ length: 3 }).map((_, i) => <RecentLessonSkeleton key={i} />)
               : recentLessons.map((lesson, i) => (

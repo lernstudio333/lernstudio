@@ -1,45 +1,25 @@
 import { useState } from 'react';
 import { Button } from 'react-bootstrap';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import type { ProgramWithCourses, CourseWithLessons, LessonSummary, StudyAction } from 'shared/features/programs';
+import './ProgramView.css';
 
 // ── Circle chevron toggle ───────────────────────────────────────
 
 function ChevronCircle({ isOpen }: { isOpen: boolean }) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: 28, height: 28, borderRadius: '50%',
-        background: 'var(--bs-primary)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, transition: 'background 0.15s',
-      }}
-    >
-      {/* Two-line chevron drawn with CSS borders */}
-      <div style={{
-        width: 8, height: 8,
-        borderRight: '2.5px solid white',
-        borderBottom: '2.5px solid white',
-        transform: isOpen ? 'rotate(-135deg) translateY(2px)' : 'rotate(45deg) translateY(-2px)',
-        transition: 'transform 0.2s',
-      }} />
+    <div className={`chevron-circle${isOpen ? ' chevron-circle--open' : ''}`} aria-hidden="true">
+      <i className={`bi bi-chevron-down chevron-icon${isOpen ? ' open' : ''}`} />
     </div>
   );
 }
 
 // ── Letter-circle icon for courses ──────────────────────────────
 
-function CourseIcon({ title, open }: { title: string; open: boolean }) {
+function CourseIcon({ open }: { open: boolean }) {
   return (
-    <div style={{
-      width: 32, height: 32, borderRadius: '50%',
-      background: open ? 'rgba(255,255,255,0.3)' : 'var(--bs-primary)',
-      color: 'white',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '0.8rem', fontWeight: 700,
-      flexShrink: 0,
-    }}>
-      {title.charAt(0).toUpperCase()}
+    <div className={`course-icon ${open ? 'course-icon--open' : ''}`}>
+      <i className="bi bi-journal-text" />
     </div>
   );
 }
@@ -58,15 +38,11 @@ function LessonRow({
   onAction: (action: StudyAction) => void;
 }) {
   return (
-    <div
-      className={`border-top ${selected ? 'bg-primary bg-opacity-10' : 'bg-white'}`}
-      style={{ transition: 'background 0.15s' }}
-    >
+    <div className={`border-top lesson-row ${selected ? 'lesson-row--selected' : 'card-subtle'}`}>
       <div
-        className="px-3 py-2"
+        className="px-3 py-2 text-start"
         role="button"
         tabIndex={0}
-        style={{ cursor: 'pointer' }}
         onClick={onSelect}
         onKeyDown={(e) => e.key === 'Enter' && onSelect()}
         aria-expanded={selected}
@@ -78,9 +54,9 @@ function LessonRow({
 
       {selected && (
         <div className="px-3 pb-3 d-flex gap-2 flex-wrap">
-          <Button size="sm" variant="primary"         onClick={() => onAction('NEW')}>    Learn New </Button>
-          <Button size="sm" variant="outline-primary"  onClick={() => onAction('REPEAT')}> Repeat    </Button>
-          <Button size="sm" variant="outline-secondary" onClick={() => onAction('LIST')}>   View Cards</Button>
+          <Button size="sm" variant="primary"           onClick={() => onAction('NEW')}>   Learn New  </Button>
+          <Button size="sm" variant="outline-primary"   onClick={() => onAction('REPEAT')}> Repeat     </Button>
+          <Button size="sm" variant="outline-secondary" onClick={() => onAction('LIST')}>   View Cards </Button>
         </div>
       )}
     </div>
@@ -108,20 +84,18 @@ function CourseItem({
 }) {
   return (
     <div className={borderTop ? 'border-top' : ''}>
-      {/* Course header */}
       <div
-        className={`d-flex align-items-center justify-content-between px-3 py-3 ${
+        className={`d-flex align-items-center justify-content-between px-3 py-3 course-header ${
           open ? 'bg-primary text-white' : 'bg-primary bg-opacity-10'
         }`}
         role="button"
         tabIndex={0}
-        style={{ cursor: 'pointer', userSelect: 'none' }}
         onClick={onToggle}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
         aria-expanded={open}
       >
         <div className="d-flex align-items-center gap-2">
-          <CourseIcon title={course.title} open={open} />
+          <CourseIcon open={open} />
           <span className={`fw-medium small ${open ? 'text-white' : ''}`}>
             {course.title}
           </span>
@@ -129,7 +103,6 @@ function CourseItem({
         <ChevronCircle isOpen={open} />
       </div>
 
-      {/* Lesson list */}
       {open && (
         <div>
           {course.lessons.length === 0 ? (
@@ -171,24 +144,22 @@ export default function ProgramView({ program, onBack, onLessonAction, initialLe
   function toggleCourse(id: string) {
     const opening = openCourseId !== id;
     setOpenCourseId(opening ? id : null);
-    setSelectedLessonId(null);   // deselect lesson when switching courses
+    setSelectedLessonId(null);
   }
 
   return (
     <div className="container py-4">
-      {/* Header */}
       <div className="d-flex align-items-center gap-3 mb-4">
         <Button variant="outline-secondary" size="sm" onClick={onBack}>
-          ← Back
+          <i className="bi bi-arrow-left me-1" />Back
         </Button>
         <h5 className="mb-0">{program.title}</h5>
       </div>
 
-      {/* Course accordion */}
       {program.courses.length === 0 ? (
-        <p className="text-muted">No courses in this program yet.</p>
+        <p className="text-muted fst-italic">No courses in this program yet.</p>
       ) : (
-        <div className="border rounded overflow-hidden">
+        <div className="shadow-sm rounded overflow-hidden accordion-container">
           {program.courses.map((course: CourseWithLessons, idx: number) => (
             <CourseItem
               key={course.id}

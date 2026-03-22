@@ -78,12 +78,14 @@ Style overrides live in `frontend/src/admin/admin.css` (not inline styles):
 
 ## 5. Cards (UI cards, not quiz cards)
 
-- Background: `bg-light` (`#f9fafb`).
-- Borders: `shadow-sm` instead of hard outlines.
-- Rounded corners: `rounded` (Bootstrap default ~8px).
-- Padding: `p-3` or `p-4` inside.
-- Consistent gap between cards: `g-3`.
-- Hover/focus (clickable cards): gentle lift — add `shadow` on hover, `cursor: pointer`.
+- **Background**: very light, use the shared `.card-subtle` class (`#fcfcfc`). Never use a hard white or strong color.
+- **No border**: always add `border-0` to override Bootstrap's default card outline. Depth comes from shadow, not borders.
+- **Shadow**: `shadow-sm` at rest. On hover, increase to a stronger shadow + slight lift (`translateY(-3px)`).
+- **Rounded corners**: `rounded` (Bootstrap default ~8px).
+- **Padding**: `p-3` or `p-4` inside.
+- **Consistent gap** between cards: `g-3`.
+- **Image placeholders**: use a slightly darker shade (e.g. `#dee2e6`) so they read as a distinct area within the card. Use a Bootstrap Icon, not an emoji.
+- **Hover/focus** (clickable cards): `transition: transform 0.2s ease, box-shadow 0.2s ease` — defined in CSS, not inline styles.
 - Truncate long text: `text-truncate`.
 - Clickable cards: keyboard-navigable (`tabIndex={0}`, `onKeyDown` for Enter).
 
@@ -104,18 +106,32 @@ Style overrides live in `frontend/src/admin/admin.css` (not inline styles):
 
 ---
 
-## 7. Buttons
+## 7. Button Style
+
+**This is a global rule enforced in `index.css`.**
+
+- **Solid buttons** (`btn-primary`, `btn-secondary`, etc.): default Bootstrap behavior — colored background, white text.
+- **Outline buttons** (`btn-outline-*`): **always white background**, never transparent. Bootstrap's default transparent background makes outline buttons hard to read on non-white surfaces (cards, accordions, colored rows). Override with:
+  ```css
+  [class*="btn-outline-"]:not(:hover):not(:focus):not(:active):not(.active) {
+    background-color: #fff;
+  }
+  ```
+  Scoped to the resting state so Bootstrap's hover/active styles (colored background + white text) still work correctly.
+- **Size**: use `btn-sm` inside cards and tables; default size for primary page actions.
+- **Disabled state**: use the `disabled` prop — never fake it with opacity.
+
+## 8. Button Placement
 
 - **Primary action**: `btn-primary`, always **bottom-right**.
 - **Secondary actions**: `btn-outline-secondary` or `btn-secondary`.
 - **Destructive actions**: `btn-danger` or `btn-outline-danger`, separated from primary by a spacer.
 - **Toolbar buttons**: `btn-sm`.
-- **Disabled state**: use `disabled` prop — no opacity hacks.
 - **Icon buttons**: Bootstrap Icons + `title` attribute for accessibility.
 
 ---
 
-## 8. Empty States
+## 9. Empty States
 
 | Situation                  | Pattern |
 |----------------------------|---------|
@@ -127,7 +143,7 @@ Distinguish "no data yet" from "error" — don't show the same treatment for bot
 
 ---
 
-## 9. Feedback & Toasts
+## 10. Feedback & Toasts
 
 - **Unsaved changes**: inline warning text near the Save button (`text-warning small`).
 - **Save success / errors**: TODO — add a shared toast/notification component in a future step.
@@ -136,7 +152,7 @@ Distinguish "no data yet" from "error" — don't show the same treatment for bot
 
 ---
 
-## 10. General
+## 11. General
 
 - **No inline styles** except for truly dynamic values (e.g. `width` from JS). Use utility classes.
 - **Responsive**: test at mobile width; use Bootstrap breakpoints (`col-md-*`, `d-none d-md-block`).

@@ -76,6 +76,8 @@ label.form-check-label{
 
 @media only screen and (min-width: 992px) {
     .audiocontrol {
-      display:block;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 }
