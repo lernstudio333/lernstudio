@@ -65,13 +65,15 @@ function ProgramCard({ program, onClick }: { program: ProgramWithCourses; onClic
 // ── LandingPage ─────────────────────────────────────────────────
 
 interface Props {
-  onLessonAction: (lessonId: string, action: StudyAction) => void;
+  onLessonAction: (lessonId: string, action: StudyAction, program: ProgramWithCourses) => void;
+  initialProgram?:  ProgramWithCourses | null;
+  initialLessonId?: string | null;
 }
 
-export default function LandingPage({ onLessonAction }: Props) {
+export default function LandingPage({ onLessonAction, initialProgram = null, initialLessonId = null }: Props) {
   const [programs, setPrograms]               = useState<ProgramWithCourses[] | null>(null); // null = loading
   const [error, setError]                     = useState<string | null>(null);
-  const [selectedProgram, setSelectedProgram] = useState<ProgramWithCourses | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<ProgramWithCourses | null>(initialProgram);
 
   useEffect(() => {
     supabase.functions
@@ -91,7 +93,8 @@ export default function LandingPage({ onLessonAction }: Props) {
       <ProgramView
         program={selectedProgram}
         onBack={() => setSelectedProgram(null)}
-        onLessonAction={onLessonAction}
+        onLessonAction={(lessonId, action) => onLessonAction(lessonId, action, selectedProgram)}
+        initialLessonId={initialLessonId}
       />
     );
   }

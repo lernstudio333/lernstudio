@@ -154,14 +154,19 @@ function CourseItem({
 // ── ProgramView ─────────────────────────────────────────────────
 
 interface Props {
-  program: ProgramWithCourses;
-  onBack: () => void;
-  onLessonAction: (lessonId: string, action: StudyAction) => void;
+  program:          ProgramWithCourses;
+  onBack:           () => void;
+  onLessonAction:   (lessonId: string, action: StudyAction) => void;
+  initialLessonId?: string | null;
 }
 
-export default function ProgramView({ program, onBack, onLessonAction }: Props) {
-  const [openCourseId, setOpenCourseId]     = useState<string | null>(null);
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+export default function ProgramView({ program, onBack, onLessonAction, initialLessonId = null }: Props) {
+  const initialCourseId = initialLessonId
+    ? (program.courses.find(c => c.lessons.some((l: LessonSummary) => l.id === initialLessonId))?.id ?? null)
+    : null;
+
+  const [openCourseId, setOpenCourseId]         = useState<string | null>(initialCourseId);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(initialLessonId);
 
   function toggleCourse(id: string) {
     const opening = openCourseId !== id;

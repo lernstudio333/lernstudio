@@ -8,6 +8,9 @@ export const NUMBER_CARDS_PER_SESSION = 20;
 /** Size of the distractor pool fetched from the backend for multiple-choice options. */
 export const NUMBER_DISTRACTOR_CARDS = 100;
 
+/** Maximum number of rounds before a session ends automatically. */
+export const MAX_SESSION_ROUNDS = 20;
+
 /** Learning score below which a card is treated as "new" (not yet in spaced repetition). */
 export const THRESHOLD_NEW_VS_REPEAT = 7;
 
@@ -16,3 +19,9 @@ export const MIN_CARD_REVIEW_INTERVAL_hh = 2;
 
 /** Minimum review interval in milliseconds (derived from hours). */
 export const MIN_CARD_REVIEW_INTERVAL_ms = MIN_CARD_REVIEW_INTERVAL_hh * 60 * 60 * 1000;
+
+/** Maximum answer length (chars) for TYPED_ANSWER mode to be offered. */
+export const MAX_TYPED_ANSWER_LENGTH = 6;
+
+/** Minimum number of answer parts required for ARRANGE_ORDER mode to be offered. */
+export const MIN_ARRANGE_ORDER_PARTS = 2;

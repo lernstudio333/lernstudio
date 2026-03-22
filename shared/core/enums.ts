@@ -1,5 +1,6 @@
 import { createEnum } from './enumFactory.ts';
 import type { EnumEntry } from './enumFactory.ts';
+import { MAX_TYPED_ANSWER_LENGTH, MIN_ARRANGE_ORDER_PARTS } from './constants.ts';
 
 // ── Simple Enums ─────────────────────────────────────────────
 
@@ -34,23 +35,22 @@ export const StudyMode = createEnum({
 
 // ── BasicCard  (stub — full Card interface defined in shared/features/cards) ──
 
-/** Lightweight media reference stored as the answer for image-based cards. */
+/** Lightweight media reference — full public URL resolved before quizzing. */
 export type MediaRef = {
-  bucket: string;
-  path:   string;
-  width:  number;
-  height: number;
+  url: string;
 };
 
 /**
  * Minimal card structure consumed by transformers and filters.
  * question mirrors the same possible types as answer so that bijective
  * transformers (e.g. backward) can swap the two without type errors.
+ * Singular MediaRef is needed because pickFirstAnswer / pickAnswer reduce
+ * MediaRef[] to a single element.
  */
 export interface BasicCard {
   cardType: string;
-  question: string | string[] | MediaRef[];
-  answer:   string | string[] | MediaRef[];
+  question: string | string[] | MediaRef | MediaRef[];
+  answer:   string | string[] | MediaRef | MediaRef[];
   tip?:     string;
 }
 
@@ -144,11 +144,18 @@ export function pickSynAnswer(input: BasicCard): BasicCard {
 
 // ── Filters ───────────────────────────────────────────────────
 
-const MAX_LENGTH_SHORTANSWER = 6;
+/** Allows TYPED_ANSWER mode only when the answer is a single short string (as a 1-element array). */
+export function allowTypedAnswer(input: BasicCard): boolean {
+  return Array.isArray(input.answer) &&
+    input.answer.length === 1 &&
+    typeof input.answer[0] === 'string' &&
+    (input.answer[0] as string).length <= MAX_TYPED_ANSWER_LENGTH;
+}
 
-/** Allows TYPED_ANSWER mode only when the answer is a short string. */
-export function shortAnswer(input: BasicCard): boolean {
-  return typeof input.answer === 'string' && input.answer.length <= MAX_LENGTH_SHORTANSWER;
+/** Allows ARRANGE_ORDER mode only when the answer has multiple string parts. */
+export function allowArrangeOrder(input: BasicCard): boolean {
+  return Array.isArray(input.answer) && input.answer.length >= MIN_ARRANGE_ORDER_PARTS &&
+    typeof input.answer[0] === 'string';
 }
 
 // ── Quizzing Rule type ────────────────────────────────────────
@@ -175,7 +182,7 @@ export const CardTypes = createEnum({
       { mode: QuizMode.DISPLAY_ANSWER,  label: 'Display Answer',               transformer: null,          filter: null,        min_score: 0, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice',              transformer: null,          filter: null,        min_score: 1, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice (Randomized)', transformer: partRandomize, filter: null,        min_score: 3, supersede: SupersedeMode.REPLACE_LOWER },
-      { mode: QuizMode.TYPED_ANSWER,    label: 'Typed Answer',                 transformer: null,          filter: shortAnswer, min_score: 5, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.TYPED_ANSWER,    label: 'Typed Answer',                 transformer: null,          filter: allowTypedAnswer, min_score: 5, supersede: SupersedeMode.POOL },
       { mode: QuizMode.SELF_ASSESSMENT, label: 'Self Assessment',              transformer: null,          filter: null,        min_score: 5, supersede: SupersedeMode.POOL },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice (Backward)',   transformer: backward,      filter: null,        min_score: 7, supersede: SupersedeMode.POOL },
     ] as QuizzingRule[],
@@ -185,10 +192,11 @@ export const CardTypes = createEnum({
     question_label: 'Was bedeutet',
     export_as:      'Multi card',
     quizzing: [
-      { mode: QuizMode.DISPLAY_ANSWER,  label: 'Display Answer',  transformer: null,          filter: null, min_score: 0, supersede: SupersedeMode.REPLACE_LOWER },
-      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: null,          filter: null, min_score: 1, supersede: SupersedeMode.REPLACE_LOWER },
-      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: partRandomize, filter: null, min_score: 3, supersede: SupersedeMode.REPLACE_LOWER },
-      { mode: QuizMode.SELF_ASSESSMENT, label: 'Self Assessment', transformer: null,          filter: null, min_score: 5, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.DISPLAY_ANSWER,  label: 'Display Answer',  transformer: null,          filter: null,             min_score: 0, supersede: SupersedeMode.REPLACE_LOWER },
+      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: null,          filter: null,             min_score: 1, supersede: SupersedeMode.REPLACE_LOWER },
+      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: partRandomize, filter: null,             min_score: 3, supersede: SupersedeMode.REPLACE_LOWER },
+      { mode: QuizMode.ARRANGE_ORDER,   label: 'Arrange Order',   transformer: null,          filter: allowArrangeOrder, min_score: 3, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.SELF_ASSESSMENT, label: 'Self Assessment', transformer: null,          filter: null,             min_score: 5, supersede: SupersedeMode.POOL },
     ] as QuizzingRule[],
   },
   SYNONYM: {

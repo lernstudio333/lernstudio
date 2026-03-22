@@ -7,11 +7,13 @@
     ".":            "./index.ts",
     "./core":       "./core/enumFactory.ts",
     "./constants":  "./core/constants.ts",
-    "./enums":      "./core/enums.ts",
+    "./enums":        "./core/enums.ts",
+    "./quiz-engine":  "./core/ruleSelection.ts",
     "./types":      "./types/database.types.ts",
     "./cards":               "./features/cards/types.ts",
     "./features/learnings":  "./features/learnings/index.ts",
-    "./features/programs":   "./features/programs/index.ts"
+    "./features/programs":   "./features/programs/index.ts",
+    "./features/study":      "./features/study/index.ts"
   },
   "dependencies": {
     "zod": "^3.23.0"

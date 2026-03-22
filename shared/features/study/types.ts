@@ -2,9 +2,8 @@
 
 export type StudyCardAnswer = {
   answerText: string | null;
-  mediaId:    string | null;
+  imagePath:  string | null;  // "{bucket}/{path}" — use resolveImageUrl() in frontend
   position:   number;
-  isCorrect:  boolean;
 };
 
 // ── Base card (no learning state) ─────────────────────────────

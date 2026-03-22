@@ -1,0 +1,18 @@
+/* Fixed-width slot so the score position doesn't shift when reward appears */
+.reward-icon-slot {
+  display: inline-flex;
+  width: 1.8em;
+  justify-content: center;
+}
+
+@keyframes rewardPop {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.3); }
+  100% { opacity: 1; transform: scale(1.0); }
+}
+
+.reward-icon {
+  display: inline-block;
+  font-size: 1.2rem;
+  animation: rewardPop 0.4s ease-out forwards;
+}

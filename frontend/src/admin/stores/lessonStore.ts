@@ -144,7 +144,6 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       const rows: Omit<CardAnswer, 'id'>[] = answers.map((a, i) => ({
         card_id: id,
         answer_text: a.answer_text,
-        is_correct: a.is_correct,
         position: a.position ?? i,
         media_id: a.media_id ?? null,
       }));

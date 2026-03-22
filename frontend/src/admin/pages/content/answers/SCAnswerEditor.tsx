@@ -14,7 +14,6 @@ function SCAnswerEditor() {
       id: answer?.id ?? '',
       card_id: editBuffer?.id ?? '',
       answer_text: value,
-      is_correct: true,
       position: 0,
       media_id: null,
     };

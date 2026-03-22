@@ -22,7 +22,6 @@ function ImgMCAnswerEditor() {
         id: '',
         card_id: editBuffer?.id ?? '',
         answer_text: mediaId,
-        is_correct: true,
         position: pickingIndex,
         media_id: mediaId,
       });

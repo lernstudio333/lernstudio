@@ -1,53 +1,76 @@
-import { useState } from "react";
+import { useState } from 'react';
 import LandingPage from './LandingPage';
-import LearnSession from './LearnSession';
-import CardList from './CardList';
+import QuizSession from './quiz/QuizSession';
+import ListSession from './quiz/ListSession';
 import { useAuth } from '../contexts/AuthContext';
 import type { StudyAction } from 'shared/features/programs';
+import type { ProgramWithCourses } from 'shared/features/programs';
 import '../App.css';
 
-function Body(props: { audio: any, setCounter: Function }) {
-    const { token } = useAuth();
-    const [activeComp, setActiveComp]           = useState<MainState>('CourseSelector');
-    const [filterFavourites, setFilterFavourites] = useState<Boolean>(false);
-    const [learnMethod, setLearnMethod]          = useState<LearnMethod>('repeat');
-    const [selectedCourse, setSelectedCourse]    = useState<string | null>(null);
+type ActiveView = 'landing' | 'quiz' | 'list';
 
-    // New lesson-based navigation — used by Step 17's quiz engine
-    const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
-    const [studyAction, setStudyAction]           = useState<StudyAction>('REPEAT');
+interface Props {
+  audio:         any;
+  counter:       number;
+  setCounter:    (updater: (c: number) => number) => void;
+  setRewardIcon: (icon: string | null) => void;
+}
 
-    function handleLessonAction(lessonId: string, action: StudyAction) {
-        setSelectedLessonId(lessonId);
-        setStudyAction(action);
-        // TODO Step 17: setActiveComp('LearnSession') once new quiz engine is wired up
-        console.log('[Step 17 TODO] lesson action:', action, 'lessonId:', lessonId);
-    }
+function Body({ audio, counter, setCounter, setRewardIcon }: Props) {
+  const { token } = useAuth();   // keep for legacy components if still needed
+  void token;
 
-    return <>
-        {activeComp === "CourseSelector" &&
-            <LandingPage onLessonAction={handleLessonAction} />
-        }
-        {activeComp === "LearnSession" &&
-            <LearnSession
-                audio={props.audio}
-                setActiveComp={setActiveComp}
-                selectedCourse={selectedCourse}
-                filterFavourites={filterFavourites}
-                learnMethod={learnMethod}
-                setCounter={props.setCounter}
-                token={token}
-            />
-        }
-        {activeComp === "List" &&
-            <CardList
-                setActiveComp={setActiveComp}
-                selectedCourse={selectedCourse}
-                filterFavourites={filterFavourites}
-                token={token}
-            />
-        }
-    </>;
+  const [activeView, setActiveView]         = useState<ActiveView>('landing');
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [studyAction, setStudyAction]       = useState<StudyAction>('NEW');
+  // Remember the active program so we return to the accordion after a session
+  const [activeProgram, setActiveProgram]   = useState<ProgramWithCourses | null>(null);
+
+  function handleLessonAction(
+    lessonId: string,
+    action: StudyAction,
+    program: ProgramWithCourses,
+  ) {
+    setSelectedLessonId(lessonId);
+    setStudyAction(action);
+    setActiveProgram(program);
+    setActiveView(action === 'LIST' ? 'list' : 'quiz');
+  }
+
+  function handleSessionClose() {
+    setActiveView('landing');
+  }
+
+  return (
+    <>
+      {activeView === 'landing' && (
+        <LandingPage
+          onLessonAction={handleLessonAction}
+          initialProgram={activeProgram}
+          initialLessonId={selectedLessonId}
+        />
+      )}
+
+      {activeView === 'quiz' && selectedLessonId && (
+        <QuizSession
+          lessonId={selectedLessonId}
+          studyAction={studyAction}
+          audio={audio}
+          counter={counter}
+          onClose={handleSessionClose}
+          onScoreDelta={(delta) => setCounter(c => c + delta)}
+          onReward={(icon) => { setRewardIcon(icon); }}
+        />
+      )}
+
+      {activeView === 'list' && selectedLessonId && (
+        <ListSession
+          lessonId={selectedLessonId}
+          onClose={handleSessionClose}
+        />
+      )}
+    </>
+  );
 }
 
 export default Body;

@@ -6,7 +6,6 @@ CREATE TABLE public.card_answers (
   card_id uuid,
   answer_text text,
   media_id uuid,
-  is_correct boolean DEFAULT true,
   position integer DEFAULT 0,
   CONSTRAINT card_answers_pkey PRIMARY KEY (id),
   CONSTRAINT card_answers_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.media(id),

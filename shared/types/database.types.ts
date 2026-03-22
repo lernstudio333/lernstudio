@@ -133,7 +133,6 @@ export interface CardAnswerRow {
   card_id:     string | null;
   answer_text: string | null;
   media_id:    string | null;
-  is_correct:  boolean;
   position:    number;
 }
 

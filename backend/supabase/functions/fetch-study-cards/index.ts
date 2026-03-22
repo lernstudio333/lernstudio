@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createSupabaseUserClient, createSupabaseAdminClient } from "../_shared/supabaseClients.ts";
 import { selectStudyCards } from "../../../../shared/features/study/selectionAlgorithm.ts";
+import { isCardQuizzable } from "../../../../shared/features/study/cardValidation.ts";
 import {
   NUMBER_CARDS_PER_SESSION,
   NUMBER_DISTRACTOR_CARDS,
@@ -15,7 +16,7 @@ import type {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin":  "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, content-type, x-client-info, apikey",
 };
 
 serve(async (req) => {
@@ -79,7 +80,7 @@ serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   const { data: rawCards, error: cardsError } = await adminClient
     .from("cards")
-    .select("id, card_type, question, tip, position, card_answers(answer_text, media_id, position, is_correct)")
+    .select("id, card_type, question, tip, position, card_answers(answer_text, position, media:media_id(bucket, path))")
     .eq("lesson_id", lessonId)
     .order("position");
 
@@ -115,18 +116,30 @@ serve(async (req) => {
       tip:      card.tip ?? null,
       position: card.position,
       // deno-lint-ignore no-explicit-any
-      answers:  (card.card_answers ?? []).map((a: any) => ({
-        answerText: a.answer_text ?? null,
-        mediaId:    a.media_id   ?? null,
-        position:   a.position   ?? 0,
-        isCorrect:  a.is_correct ?? true,
-      })),
+      answers:  (card.card_answers ?? []).map((a: any) => {
+        const imagePath = a.media ? `${a.media.bucket}/${a.media.path}` : null;
+        // Warn on invalid data: IMAGES cards should have imagePath, others should not
+        if (card.card_type === 'IMAGES' && a.answer_text && !imagePath) {
+          console.warn(`[DataWarning] IMAGES card ${card.id} has text answer without media: "${a.answer_text}"`);
+        }
+        if (card.card_type !== 'IMAGES' && imagePath) {
+          console.warn(`[DataWarning] Non-IMAGES card ${card.id} (type: ${card.card_type}) has unexpected media answer`);
+        }
+        return { answerText: a.answer_text ?? null, imagePath, position: a.position ?? 0 };
+      }),
       learning,
     };
   });
 
+  // ── Drop cards that cannot be quizzed ──────────────────────
+  const quizzableCards = lessonCards.filter(isCardQuizzable);
+  const droppedCount   = lessonCards.length - quizzableCards.length;
+  if (droppedCount > 0) {
+    console.warn(`[DataWarning] Dropped ${droppedCount} unquizzable card(s) from lesson ${lessonId}`);
+  }
+
   // ── Run selection algorithm ─────────────────────────────────
-  const studyCards = selectStudyCards(lessonCards, quizMode, favoriteOnly, studyCardCount);
+  const studyCards = selectStudyCards(quizzableCards, quizMode, favoriteOnly, studyCardCount);
 
   // ── Distractor cards (NEW and REPEAT only) ──────────────────
   let distractorCards: StudyCard[] = [];
@@ -134,8 +147,8 @@ serve(async (req) => {
   if (quizMode !== "LIST") {
     const studyCardIdSet = new Set(studyCards.map(c => c.id));
 
-    // Step 1: candidates from same lesson (exclude study cards)
-    const lessonDistractors: StudyCard[] = lessonCards
+    // Step 1: candidates from same lesson (exclude study cards, keep only quizzable)
+    const lessonDistractors: StudyCard[] = quizzableCards
       .filter(c => !studyCardIdSet.has(c.id))
       .map(({ learning: _learning, ...card }) => card);
 
@@ -146,7 +159,7 @@ serve(async (req) => {
       // Step 2: expand to sister lessons in the same course
       const { data: siblingCards, error: siblingError } = await adminClient
         .from("cards")
-        .select("id, card_type, question, tip, position, card_answers(answer_text, media_id, position, is_correct)")
+        .select("id, card_type, question, tip, position, card_answers(answer_text, position, media:media_id(bucket, path))")
         .neq("lesson_id", lessonId)
         .in(
           "lesson_id",
@@ -168,11 +181,10 @@ serve(async (req) => {
           // deno-lint-ignore no-explicit-any
           answers:  (card.card_answers ?? []).map((a: any) => ({
             answerText: a.answer_text ?? null,
-            mediaId:    a.media_id   ?? null,
+            imagePath:  a.media ? `${a.media.bucket}/${a.media.path}` : null,
             position:   a.position   ?? 0,
-            isCorrect:  a.is_correct ?? true,
           })),
-        }));
+        })).filter(isCardQuizzable);
 
         distractorCards = shuffled([...lessonDistractors, ...siblingDistractors]).slice(0, distractorCardCount);
       } else {

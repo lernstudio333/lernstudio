@@ -17,7 +17,6 @@ function ImgSCAnswerEditor() {
       id: answer?.id ?? '',
       card_id: editBuffer?.id ?? '',
       answer_text: mediaId,
-      is_correct: true,
       position: 0,
       media_id: mediaId,
     };
