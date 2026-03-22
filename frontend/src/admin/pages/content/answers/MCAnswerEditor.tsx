@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardAnswer } from '../../../types/admin.types';
@@ -7,6 +8,17 @@ function MCAnswerEditor() {
   const updateEditBuffer = useLessonStore(s => s.updateEditBuffer);
 
   const answers: CardAnswer[] = editBuffer?.answers ?? [];
+
+  // Seed one empty answer row for brand-new multi-answer cards
+  useEffect(() => {
+    if (answers.length === 0) {
+      updateEditBuffer({
+        answers: [{
+          id: '', card_id: editBuffer?.id ?? '', answer_text: '', position: 0, media_id: null,
+        }],
+      });
+    }
+  }, []);
 
   function updateAnswer(index: number, partial: Partial<CardAnswer>) {
     const updated = answers.map((a, i) => i === index ? { ...a, ...partial } : a);

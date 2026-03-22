@@ -78,7 +78,10 @@ function CardListRow({ card, lessonId, cardId, isDraggable, compact }: Props) {
       {!compact && (
         <td className="text-truncate text-muted small">
           {card.answers?.length > 0
-            ? card.answers.map(a => a.answer_text).join(', ')
+            ? card.answers.map(a => {
+                if (a.media?.path) return a.media.path.split('/').pop() ?? a.answer_text;
+                return a.answer_text;
+              }).join(', ')
             : <span className="fst-italic">—</span>}
         </td>
       )}

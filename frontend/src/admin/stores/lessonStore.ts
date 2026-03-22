@@ -70,7 +70,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     set({ isLoadingCards: true });
     const { data, error } = await supabase
       .from('cards')
-      .select('*, answers:card_answers(*), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
       .eq('lesson_id', lessonId)
       .order('position');
     if (error) { console.error('reloadCards error', error); set({ isLoadingCards: false }); return; }
@@ -84,7 +84,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const [cardsRes, lessonRes] = await Promise.all([
       supabase
         .from('cards')
-        .select('*, answers:card_answers(*), modes:card_modes(*)')
+        .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
         .eq('lesson_id', id)
         .order('position'),
       supabase
@@ -167,7 +167,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     // Re-fetch the saved card to get fresh data
     const { data: fresh } = await supabase
       .from('cards')
-      .select('*, answers:card_answers(*), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
       .eq('id', id)
       .single();
 
@@ -254,7 +254,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
         card_type: CardTypes.SINGLE_CARD.key,
         position: maxPos + 1,
       })
-      .select('*, answers:card_answers(*), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
       .single();
     if (error || !data) { console.error('addNewCard error', error); return null; }
     set(s => ({ cards: [...s.cards, data as AdminCard] }));

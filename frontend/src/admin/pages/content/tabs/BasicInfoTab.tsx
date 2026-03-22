@@ -4,8 +4,12 @@ import { CardTypes } from 'shared';
 import { useLessonStore } from '../../../stores/lessonStore';
 import type { CardType } from '../../../types/admin.types';
 import ConfirmModal from '../../../components/ConfirmModal';
+import SCAnswerEditor from '../answers/SCAnswerEditor';
+import MCAnswerEditor from '../answers/MCAnswerEditor';
+import ImgMCAnswerEditor from '../answers/ImgMCAnswerEditor';
 
 const CARD_TYPE_OPTIONS = CardTypes.values().map(e => ({ key: e.key as CardType, label: e.export_as }));
+const CT = CardTypes;
 
 function BasicInfoTab() {
   const editBuffer = useLessonStore(s => s.editBuffer);
@@ -26,6 +30,8 @@ function BasicInfoTab() {
     setPendingType(null);
   }
 
+  const cardType = editBuffer.card_type;
+
   return (
     <>
     <div className="d-flex flex-column gap-3">
@@ -42,33 +48,13 @@ function BasicInfoTab() {
       <Form.Group>
         <Form.Label className="small fw-semibold">Card Type</Form.Label>
         <Form.Select
-          value={editBuffer.card_type ?? CardTypes.SINGLE_CARD.key}
+          value={editBuffer.card_type ?? CT.SINGLE_CARD.key}
           onChange={e => handleTypeChange(e.target.value as CardType)}
         >
           {CARD_TYPE_OPTIONS.map(t => (
             <option key={t.key} value={t.key}>{t.label}</option>
           ))}
         </Form.Select>
-      </Form.Group>
-
-      <Form.Group>
-        <Form.Label className="small fw-semibold">Tip</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={2}
-          value={editBuffer.tip ?? ''}
-          onChange={e => updateEditBuffer({ tip: e.target.value })}
-        />
-      </Form.Group>
-
-      <Form.Group>
-        <Form.Label className="small fw-semibold">Details</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={2}
-          value={editBuffer.details ?? ''}
-          onChange={e => updateEditBuffer({ details: e.target.value })}
-        />
       </Form.Group>
 
       <Form.Group>
@@ -80,14 +66,12 @@ function BasicInfoTab() {
         />
       </Form.Group>
 
-      <Form.Group>
-        <Form.Label className="small fw-semibold">Source</Form.Label>
-        <Form.Control
-          type="text"
-          value={editBuffer.source ?? ''}
-          onChange={e => updateEditBuffer({ source: e.target.value })}
-        />
-      </Form.Group>
+      <hr className="my-1" />
+
+      {cardType === CT.SINGLE_CARD.key && <SCAnswerEditor />}
+      {(cardType === CT.MULTI_CARD.key || cardType === CT.SYNONYM.key) && <MCAnswerEditor />}
+      {cardType === CT.IMAGES.key && <ImgMCAnswerEditor />}
+      {cardType === CT.GAP.key && <div className="text-muted fst-italic small">GAP editor coming soon</div>}
     </div>
 
     <ConfirmModal

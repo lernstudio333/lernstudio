@@ -1,5 +1,4 @@
 import { Button, Badge } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { useLessonStore, getSortedCards } from '../../stores/lessonStore';
 import type { AdminCard } from '../../types/admin.types';
 
@@ -11,11 +10,11 @@ const TYPE_COLORS: Record<string, string> = {
 interface Props {
   lessonId: string;
   cardId: string;
-  onNavigate?: () => void;
+  onNavigate: (path: string) => void;
+  onNewCard:  () => void;
 }
 
-function CardEditorNav({ lessonId, cardId, onNavigate }: Props) {
-  const navigate = useNavigate();
+function CardEditorNav({ lessonId, cardId, onNavigate, onNewCard }: Props) {
   const cards = useLessonStore(s => s.cards);
   const sortField = useLessonStore(s => s.sortField);
   const sortDir = useLessonStore(s => s.sortDir);
@@ -25,34 +24,35 @@ function CardEditorNav({ lessonId, cardId, onNavigate }: Props) {
   const total = sorted.length;
   const currentCard = sorted[currentIndex] as AdminCard | undefined;
 
-  function goTo(index: number) {
-    if (index < 0 || index >= total) return;
-    onNavigate?.();
-    navigate(`/admin/lessons/${lessonId}/cards/${sorted[index].id}`);
-  }
-
   return (
-    <div className="d-flex align-items-center gap-3 mb-3">
+    <div className="d-flex align-items-center gap-2 mb-3">
       <Button
         size="sm"
         variant="outline-secondary"
         disabled={currentIndex <= 0}
-        onClick={() => goTo(currentIndex - 1)}
-      >← Previous</Button>
+        onClick={() => onNavigate(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex - 1].id}`)}
+      >← Prev</Button>
 
       <span className="small text-muted">
-        Card {currentIndex + 1} of {total}
+        {currentIndex + 1} / {total}
       </span>
 
       <Button
         size="sm"
         variant="outline-secondary"
         disabled={currentIndex >= total - 1}
-        onClick={() => goTo(currentIndex + 1)}
+        onClick={() => onNavigate(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex + 1].id}`)}
       >Next →</Button>
 
+      <Button
+        size="sm"
+        variant="outline-primary"
+        onClick={onNewCard}
+        title="New card"
+      >+ New</Button>
+
       {currentCard && (
-        <Badge bg={TYPE_COLORS[currentCard.card_type] ?? 'secondary'} className="ms-2">
+        <Badge bg={TYPE_COLORS[currentCard.card_type] ?? 'secondary'} className="ms-1">
           {currentCard.card_type}
         </Badge>
       )}

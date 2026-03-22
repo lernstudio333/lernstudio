@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLessonStore, getSortedCards } from '../../stores/lessonStore';
 import CardEditorNav from './CardEditorNav';
 import BasicInfoTab from './tabs/BasicInfoTab';
-import AnswersTab from './tabs/AnswersTab';
+import DetailsTab from './tabs/DetailsTab';
 import CardModesTab from './tabs/CardModesTab';
 import UnsavedChangesModal from '../../components/UnsavedChangesModal';
 
@@ -20,12 +20,13 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
   const sortDir = useLessonStore(s => s.sortDir);
   const initEditBuffer = useLessonStore(s => s.initEditBuffer);
   const saveCard = useLessonStore(s => s.saveCard);
+  const addNewCard = useLessonStore(s => s.addNewCard);
   const isDirty = useLessonStore(s => s.isDirty);
   const editBuffer = useLessonStore(s => s.editBuffer);
 
   const [saving, setSaving] = useState(false);
-  const [pendingNav, setPendingNav] = useState<string | null>(null);
   const [showUnsaved, setShowUnsaved] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   const sorted = getSortedCards({ cards, sortField, sortDir });
   const card = sorted.find(c => c.id === cardId);
@@ -41,22 +42,23 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const currentIndex = sorted.findIndex(c => c.id === cardId);
       if (e.key === 'ArrowLeft' && currentIndex > 0) {
-        handleNavRequest(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex - 1].id}`);
+        requestAction(() => navigate(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex - 1].id}`));
       }
       if (e.key === 'ArrowRight' && currentIndex < sorted.length - 1) {
-        handleNavRequest(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex + 1].id}`);
+        requestAction(() => navigate(`/admin/lessons/${lessonId}/cards/${sorted[currentIndex + 1].id}`));
       }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [cardId, sorted, isDirty]);
 
-  function handleNavRequest(path: string) {
+  /** Guard: if dirty show modal, otherwise run immediately. */
+  function requestAction(action: () => void) {
     if (isDirty) {
-      setPendingNav(path);
+      setPendingAction(() => action);
       setShowUnsaved(true);
     } else {
-      navigate(path);
+      action();
     }
   }
 
@@ -65,12 +67,14 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
     await saveCard();
     setSaving(false);
     setShowUnsaved(false);
-    if (pendingNav) { navigate(pendingNav); setPendingNav(null); }
+    pendingAction?.();
+    setPendingAction(null);
   }
 
   function handleDiscard() {
     setShowUnsaved(false);
-    if (pendingNav) { navigate(pendingNav); setPendingNav(null); }
+    pendingAction?.();
+    setPendingAction(null);
     if (card) initEditBuffer(card);
   }
 
@@ -78,6 +82,13 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
     setSaving(true);
     await saveCard();
     setSaving(false);
+  }
+
+  async function handleNewCard() {
+    requestAction(async () => {
+      const newId = await addNewCard();
+      if (newId) navigate(`/admin/lessons/${lessonId}/cards/${newId}`);
+    });
   }
 
   if (!card) return <div className="text-muted p-3">Card not found</div>;
@@ -89,26 +100,23 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
         <Button
           size="sm"
           variant="outline-secondary"
-          onClick={() => handleNavRequest(`/admin/lessons/${lessonId}`)}
+          onClick={() => requestAction(() => navigate(`/admin/lessons/${lessonId}`))}
           title="Close editor"
         >✕</Button>
       </div>
       <CardEditorNav
         lessonId={lessonId}
         cardId={cardId}
-        onNavigate={() => {
-          if (isDirty) {
-            // nav handled via handleNavRequest
-          }
-        }}
+        onNavigate={path => requestAction(() => navigate(path))}
+        onNewCard={handleNewCard}
       />
 
       <Tabs defaultActiveKey="basic" className="mb-3" unmountOnExit>
         <Tab eventKey="basic" title="Basic Info">
           <BasicInfoTab />
         </Tab>
-        <Tab eventKey="answers" title="Answers">
-          <AnswersTab />
+        <Tab eventKey="details" title="Details">
+          <DetailsTab />
         </Tab>
         <Tab eventKey="modes" title="Modes">
           <CardModesTab />
@@ -131,7 +139,7 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
         show={showUnsaved}
         onSave={handleSaveAndContinue}
         onDiscard={handleDiscard}
-        onCancel={() => { setShowUnsaved(false); setPendingNav(null); }}
+        onCancel={() => { setShowUnsaved(false); setPendingAction(null); }}
       />
     </div>
   );

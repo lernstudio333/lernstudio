@@ -8,6 +8,7 @@ export interface CardAnswer {
   answer_text: string;
   position: number;
   media_id: string | null;
+  media?: { path: string } | null;
 }
 
 export interface CardMode {
