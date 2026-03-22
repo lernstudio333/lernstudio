@@ -91,18 +91,21 @@ After login the user sees two sections on the landing page:
 
 ### 3.1 Continue Studying
 
-Displays the **last three lessons** the user studied.
+Displays the **last three lessons** the user studied, ordered by most recently visited.
 
-Each entry is shown as a **breadcrumb-style link**:
+The section is hidden entirely if the user has no study history yet.
+While loading, three skeleton rows are shown.
 
-```
-Program → Course → Lesson
-```
+Each row contains:
+- **Breadcrumb** (small muted text): `Program › Course` — truncated if long
+- **Lesson title** (bold, truncated)
+- **Study button** (fixed width, right-aligned):
+  - `Study New` (primary) — if any card in the lesson has a low score (`< THRESHOLD_NEW_VS_REPEAT`)
+  - `Repeat` (outline) — if all cards are already above the threshold
 
-Each part of the breadcrumb is individually clickable:
-- Clicking **Program** opens that program
-- Clicking **Course** opens that course within the program
-- Clicking **Lesson** goes directly to the lesson action screen
+Clicking the button starts a session immediately using the recommended study mode.
+
+Backend: `recent-lessons` edge function. Shared type: `RecentLesson` in `shared/features/programs/types.ts`.
 
 ### 3.2 Programs
 

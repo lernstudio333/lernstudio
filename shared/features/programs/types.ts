@@ -23,3 +23,18 @@ export interface ProgramWithCourses {
 export interface FetchProgramsResponse {
   programs: ProgramWithCourses[];
 }
+
+export interface RecentLesson {
+  lessonId:     string;
+  lessonTitle:  string;
+  courseId:     string;
+  courseTitle:  string;
+  programId:    string;
+  programTitle: string;
+  lastVisited:  string;
+  studyMode:    'NEW' | 'REPEAT';
+}
+
+export interface FetchRecentLessonsResponse {
+  lessons: RecentLesson[];
+}

@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.upload-media]
 verify_jwt = false
+
+[functions.recent-lessons]
+verify_jwt = false

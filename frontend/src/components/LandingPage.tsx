@@ -1,7 +1,60 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import type { ProgramWithCourses, FetchProgramsResponse, StudyAction } from 'shared/features/programs';
+import type { ProgramWithCourses, FetchProgramsResponse, StudyAction, RecentLesson, FetchRecentLessonsResponse } from 'shared/features/programs';
 import ProgramView from './ProgramView';
+
+// ── Recent lesson skeleton row ───────────────────────────────────
+
+function RecentLessonSkeleton() {
+  return (
+    <div className="d-flex align-items-center gap-3 py-2 placeholder-glow">
+      <div className="flex-grow-1">
+        <span className="placeholder col-5 d-block mb-1" style={{ height: '0.9rem' }} />
+        <span className="placeholder col-8 d-block" style={{ height: '0.75rem' }} />
+      </div>
+      <span className="placeholder col-2" style={{ height: '2rem', borderRadius: 4 }} />
+    </div>
+  );
+}
+
+// ── Recent lesson row ────────────────────────────────────────────
+
+function RecentLessonRow({
+  lesson,
+  onAction,
+  isLast,
+}: {
+  lesson:   RecentLesson;
+  onAction: (lessonId: string, action: StudyAction) => void;
+  isLast:   boolean;
+}) {
+  const breadcrumb = `${lesson.programTitle} › ${lesson.courseTitle}`;
+  const isNew      = lesson.studyMode === 'NEW';
+
+  return (
+    <div className={`d-flex align-items-center gap-3 py-2${isLast ? '' : ' border-bottom'}`}>
+      <div className="flex-grow-1 overflow-hidden">
+        <div
+          className="text-muted small text-truncate"
+          title={breadcrumb}
+          style={{ fontSize: '0.75rem' }}
+        >
+          {breadcrumb}
+        </div>
+        <div className="fw-semibold text-truncate" title={lesson.lessonTitle}>
+          {lesson.lessonTitle}
+        </div>
+      </div>
+      <button
+        className={`btn btn-sm flex-shrink-0 ${isNew ? 'btn-primary' : 'btn-outline-secondary'}`}
+        style={{ minWidth: '6rem' }}
+        onClick={() => onAction(lesson.lessonId, lesson.studyMode)}
+      >
+        {isNew ? 'Study New' : 'Repeat'}
+      </button>
+    </div>
+  );
+}
 
 // ── Skeleton card ───────────────────────────────────────────────
 
@@ -65,7 +118,7 @@ function ProgramCard({ program, onClick }: { program: ProgramWithCourses; onClic
 // ── LandingPage ─────────────────────────────────────────────────
 
 interface Props {
-  onLessonAction: (lessonId: string, action: StudyAction, program: ProgramWithCourses) => void;
+  onLessonAction: (lessonId: string, action: StudyAction, program: ProgramWithCourses | null) => void;
   initialProgram?:  ProgramWithCourses | null;
   initialLessonId?: string | null;
 }
@@ -74,6 +127,7 @@ export default function LandingPage({ onLessonAction, initialProgram = null, ini
   const [programs, setPrograms]               = useState<ProgramWithCourses[] | null>(null); // null = loading
   const [error, setError]                     = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<ProgramWithCourses | null>(initialProgram);
+  const [recentLessons, setRecentLessons]     = useState<RecentLesson[] | null>(null); // null = loading
 
   useEffect(() => {
     supabase.functions
@@ -85,6 +139,13 @@ export default function LandingPage({ onLessonAction, initialProgram = null, ini
           setPrograms(data?.programs ?? []);
         }
       });
+
+    supabase.functions
+      .invoke<FetchRecentLessonsResponse>('recent-lessons')
+      .then(({ data }) => {
+        setRecentLessons(data?.lessons ?? []);
+      })
+      .catch(() => setRecentLessons([]));
   }, []);
 
   // Show program detail view when a program is selected
@@ -103,13 +164,24 @@ export default function LandingPage({ onLessonAction, initialProgram = null, ini
     <div className="container py-4">
 
       {/* ── Continue Studying ─────────────────────────────── */}
-      <section className="mb-5">
-        <h5 className="mb-3">Continue Studying</h5>
-        <div className="rounded border p-3 bg-light text-muted small fst-italic">
-          Your three most recently studied lessons will appear here.
-          <span className="ms-1 text-body-tertiary">(Coming in Step 15)</span>
-        </div>
-      </section>
+      {(recentLessons === null || recentLessons.length > 0) && (
+        <section className="mb-5">
+          <h5 className="mb-3">Continue Studying</h5>
+          <div className="border rounded px-3 py-1">
+            {recentLessons === null
+              ? Array.from({ length: 3 }).map((_, i) => <RecentLessonSkeleton key={i} />)
+              : recentLessons.map((lesson, i) => (
+                  <RecentLessonRow
+                    key={lesson.lessonId}
+                    lesson={lesson}
+                    onAction={(lessonId, action) => onLessonAction(lessonId, action, null)}
+                    isLast={i === recentLessons.length - 1}
+                  />
+                ))
+            }
+          </div>
+        </section>
+      )}
 
       {/* ── Programs ──────────────────────────────────────── */}
       <section>

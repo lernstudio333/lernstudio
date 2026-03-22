@@ -29,7 +29,7 @@ function Body({ audio, counter, setCounter, setRewardIcon }: Props) {
   function handleLessonAction(
     lessonId: string,
     action: StudyAction,
-    program: ProgramWithCourses,
+    program: ProgramWithCourses | null,
   ) {
     setSelectedLessonId(lessonId);
     setStudyAction(action);
