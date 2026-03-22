@@ -1,5 +1,17 @@
 /* Admin-specific style overrides */
 
+/* ── Reset legacy App.css rules that cascade into admin ──────── */
+.admin-root,
+.admin-root * {
+  text-align: left;
+}
+
+.tab-content label.form-check-label {
+  font-size: 0.85rem;
+  vertical-align: baseline;
+}
+
+
 /* ── Tabs: flat modern style ──────────────────────────────────── */
 .nav-tabs {
   border-bottom: 1px solid var(--bs-border-color);

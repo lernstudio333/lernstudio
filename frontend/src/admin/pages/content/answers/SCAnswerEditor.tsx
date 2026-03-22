@@ -21,7 +21,7 @@ function SCAnswerEditor() {
   }
 
   return (
-    <Form.Group>
+    <Form.Group controlId="card-answer">
       <Form.Label className="small fw-semibold">Correct Answer</Form.Label>
       <Form.Control
         type="text"

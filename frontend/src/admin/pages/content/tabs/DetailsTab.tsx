@@ -8,8 +8,8 @@ function DetailsTab() {
   if (!editBuffer) return null;
 
   return (
-    <div className="d-flex flex-column gap-3">
-      <Form.Group>
+    <>
+      <Form.Group controlId="card-tip" className="mb-3">
         <Form.Label className="small fw-semibold">Tip</Form.Label>
         <Form.Control
           as="textarea"
@@ -19,7 +19,7 @@ function DetailsTab() {
         />
       </Form.Group>
 
-      <Form.Group>
+      <Form.Group controlId="card-details" className="mb-3">
         <Form.Label className="small fw-semibold">Details</Form.Label>
         <Form.Control
           as="textarea"
@@ -29,7 +29,7 @@ function DetailsTab() {
         />
       </Form.Group>
 
-      <Form.Group>
+      <Form.Group controlId="card-source" className="mb-3">
         <Form.Label className="small fw-semibold">Source</Form.Label>
         <Form.Control
           type="text"
@@ -37,7 +37,7 @@ function DetailsTab() {
           onChange={e => updateEditBuffer({ source: e.target.value })}
         />
       </Form.Group>
-    </div>
+    </>
   );
 }
 

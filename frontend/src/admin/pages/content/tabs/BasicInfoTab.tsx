@@ -34,8 +34,7 @@ function BasicInfoTab() {
 
   return (
     <>
-    <div className="d-flex flex-column gap-3">
-      <Form.Group>
+      <Form.Group controlId="card-question" className="mb-3">
         <Form.Label className="small fw-semibold">Question</Form.Label>
         <Form.Control
           as="textarea"
@@ -45,7 +44,7 @@ function BasicInfoTab() {
         />
       </Form.Group>
 
-      <Form.Group>
+      <Form.Group controlId="card-type" className="mb-3">
         <Form.Label className="small fw-semibold">Card Type</Form.Label>
         <Form.Select
           value={editBuffer.card_type ?? CT.SINGLE_CARD.key}
@@ -57,7 +56,7 @@ function BasicInfoTab() {
         </Form.Select>
       </Form.Group>
 
-      <Form.Group>
+      <Form.Group controlId="card-ext-id" className="mb-3">
         <Form.Label className="small fw-semibold">External ID</Form.Label>
         <Form.Control
           type="text"
@@ -66,25 +65,24 @@ function BasicInfoTab() {
         />
       </Form.Group>
 
-      <hr className="my-1" />
+      <hr className="my-2" />
 
       {cardType === CT.SINGLE_CARD.key && <SCAnswerEditor />}
       {(cardType === CT.MULTI_CARD.key || cardType === CT.SYNONYM.key) && <MCAnswerEditor />}
       {cardType === CT.IMAGES.key && <ImgMCAnswerEditor />}
       {cardType === CT.GAP.key && <div className="text-muted fst-italic small">GAP editor coming soon</div>}
-    </div>
 
-    <ConfirmModal
-      show={!!pendingType}
-      title="Change Card Type?"
-      confirmLabel="Change Type"
-      confirmVariant="warning"
-      onConfirm={confirmTypeChange}
-      onCancel={() => setPendingType(null)}
-    >
-      <p>Changing the card type will clear all existing answers. This cannot be undone.</p>
-      <p>Are you sure you want to continue?</p>
-    </ConfirmModal>
+      <ConfirmModal
+        show={!!pendingType}
+        title="Change Card Type?"
+        confirmLabel="Change Type"
+        confirmVariant="warning"
+        onConfirm={confirmTypeChange}
+        onCancel={() => setPendingType(null)}
+      >
+        <p>Changing the card type will clear all existing answers. This cannot be undone.</p>
+        <p>Are you sure you want to continue?</p>
+      </ConfirmModal>
     </>
   );
 }

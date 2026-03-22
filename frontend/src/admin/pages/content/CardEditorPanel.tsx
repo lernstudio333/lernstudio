@@ -95,7 +95,7 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
   if (!editBuffer) return <Spinner animation="border" size="sm" />;
 
   return (
-    <div className="border rounded p-3">
+    <div className="bg-light shadow-sm rounded p-4">
       <div className="d-flex justify-content-end mb-2">
         <Button
           size="sm"
