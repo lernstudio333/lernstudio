@@ -68,7 +68,7 @@ serve(async (req) => {
   const { data: cards, error: cardsError } = await adminClient
     .from("cards")
     .select(`
-      id, ext_id, card_type, question, tip,
+      id, ext_id, card_type, question, tip, flags,
       lessons(id, ext_id, courses(id, ext_id, programs(id, ext_id))),
       card_answers(answer_text, media_id, position, media(path))
     `)
@@ -111,8 +111,9 @@ serve(async (req) => {
       cardType:     card.card_type as string,
       question:     card.question  as string,
       answer:       formatAnswerForCsv(textAnswers),
-      tip:          (card.tip as string | null) ?? "",
+      tip:          (card.tip   as string | null) ?? "",
       media:        mediaFilenames.join(", "),
+      flags:        (card.flags as string | null) ?? "",
     };
   });
 

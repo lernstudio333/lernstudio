@@ -1,55 +1,50 @@
 import { Form } from 'react-bootstrap';
 import { useLessonStore } from '../../../stores/lessonStore';
-import type { CardModeType, CardMode } from '../../../types/admin.types';
+import { parseFlags } from 'shared';
 
-const ALL_MODES: { value: CardModeType; label: string }[] = [
-  { value: 'SHOW',             label: 'Show' },
-  { value: 'MULTIPLECARDS',    label: 'Multiple Cards' },
-  { value: 'MULTIPLEANSWERS',  label: 'Multiple Answers' },
-  { value: 'SORTPARTS',        label: 'Sort Parts' },
-  { value: 'SELFASSES',        label: 'Self Assess' },
-  { value: 'TYPE',             label: 'Type Answer' },
-  { value: 'ALIKES',           label: 'Alikes' },
-  { value: 'MULTIPLECARDS_BW', label: 'Multiple Cards (BW)' },
-  { value: 'SORTPARTS_BW',     label: 'Sort Parts (BW)' },
-  { value: 'SELFASSES_BW',     label: 'Self Assess (BW)' },
-  { value: 'TYPE_BW',          label: 'Type Answer (BW)' },
+const FLAGS: { value: string; label: string; description: string }[] = [
+  {
+    value:       'NO_BACKWARD',
+    label:       'No backward quizzing',
+    description: 'Skip modes that swap question and answer (e.g. "what is the term for …?").',
+  },
+  {
+    value:       'NO_TYPING',
+    label:       'No typed answer',
+    description: 'Skip typed-answer mode for this card.',
+  },
 ];
 
 function CardModesTab() {
-  const editBuffer = useLessonStore(s => s.editBuffer);
+  const editBuffer      = useLessonStore(s => s.editBuffer);
   const updateEditBuffer = useLessonStore(s => s.updateEditBuffer);
 
   if (!editBuffer) return null;
 
-  const activeModes = new Set((editBuffer.modes ?? []).map(m => m.mode));
+  const activeFlags = new Set(parseFlags(editBuffer.flags ?? ''));
 
-  function toggle(modeValue: CardModeType) {
-    const currentModes = editBuffer?.modes ?? [];
-    if (activeModes.has(modeValue)) {
-      updateEditBuffer({ modes: currentModes.filter(m => m.mode !== modeValue) });
-    } else {
-      const newMode: Omit<CardMode, 'id'> = {
-        card_id: editBuffer?.id ?? '',
-        mode: modeValue,
-        value: 1,
-        min_score: 0,
-      };
-      updateEditBuffer({ modes: [...currentModes, newMode as CardMode] });
-    }
+  function toggle(flag: string) {
+    const next = new Set(activeFlags);
+    next.has(flag) ? next.delete(flag) : next.add(flag);
+    updateEditBuffer({ flags: [...next].join(',') });
   }
 
   return (
     <div>
-      {ALL_MODES.map(m => (
+      {FLAGS.map(f => (
         <Form.Check
-          key={m.value}
+          key={f.value}
           type="checkbox"
-          id={`mode-${m.value}`}
-          label={m.label}
-          checked={activeModes.has(m.value)}
-          onChange={() => toggle(m.value)}
-          className="mb-2"
+          id={`flag-${f.value}`}
+          label={
+            <span>
+              <strong>{f.label}</strong>
+              <span className="text-muted ms-2 small">{f.description}</span>
+            </span>
+          }
+          checked={activeFlags.has(f.value)}
+          onChange={() => toggle(f.value)}
+          className="mb-3"
         />
       ))}
     </div>

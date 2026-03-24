@@ -29,6 +29,7 @@ export type CsvMappedCard = {
   textAnswers:    string[];  // non-IMAGES cards
   mediaFilenames: string[];  // IMAGES cards — Edge Function resolves to media_ids
   tip?:           string;
+  flags?:         string;    // normalized comma string, e.g. 'NO_BACKWARD,NO_TYPING'
 };
 
 /** A single field-level error within a CSV row. */

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Accordion, Spinner, Alert } from 'react-bootstrap';
+import { BsClipboard, BsCheckLg } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useLessonStore } from '../../stores/lessonStore';
@@ -10,9 +11,10 @@ interface ProgramNode extends AdminProgram {
 }
 
 function ContentPage() {
-  const [tree, setTree] = useState<ProgramNode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [tree, setTree]         = useState<ProgramNode[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const navigate = useNavigate();
   const setLessonContext = useLessonStore(s => s.setLessonContext);
 
@@ -31,8 +33,8 @@ function ContentPage() {
       }
 
       const programs = (progRes.data ?? []) as AdminProgram[];
-      const courses = (courseRes.data ?? []) as AdminCourse[];
-      const lessons = (lessonRes.data ?? []) as AdminLesson[];
+      const courses  = (courseRes.data ?? []) as AdminCourse[];
+      const lessons  = (lessonRes.data ?? []) as AdminLesson[];
       console.log('[ContentPage] fetched', { programs, courses, lessons });
 
       const built: ProgramNode[] = programs.map(p => ({
@@ -51,11 +53,18 @@ function ContentPage() {
     load();
   }, []);
 
+  function copyLessonId(e: React.MouseEvent, lessonId: string) {
+    e.stopPropagation();
+    navigator.clipboard.writeText(lessonId);
+    setCopiedId(lessonId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   if (loading) return <div className="p-3"><Spinner animation="border" size="sm" /> Loading…</div>;
   if (error) return <Alert variant="danger">{error}</Alert>;
 
   return (
-    <div>
+    <div style={{ maxWidth: '1200px' }}>
       <h5 className="mb-3">Content</h5>
       <Accordion alwaysOpen>
         {tree.map(program => (
@@ -68,11 +77,18 @@ function ContentPage() {
                   {course.lessons.map(lesson => (
                     <div
                       key={lesson.id}
-                      className="px-4 py-2 hover-bg-light cursor-pointer border-top small text-start"
+                      className="px-4 py-2 hover-bg-light border-top small text-start d-flex align-items-center justify-content-between"
                       style={{ cursor: 'pointer' }}
                       onClick={() => { setLessonContext(program.id, course.id); navigate(`/admin/lessons/${lesson.id}`); }}
                     >
-                      {lesson.title}
+                      <span>{lesson.title}</span>
+                      <button
+                        className="btn btn-link btn-sm p-0 ms-2 text-muted"
+                        title="Copy lesson ID"
+                        onClick={(e) => copyLessonId(e, lesson.id)}
+                      >
+                        {copiedId === lesson.id ? <BsCheckLg className="text-success" /> : <BsClipboard />}
+                      </button>
                     </div>
                   ))}
                   {course.lessons.length === 0 && (

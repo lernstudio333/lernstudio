@@ -145,6 +145,40 @@ serve(async (req) => {
 import { validateCsv } from '../../../../shared/features/csv/CsvValidator.ts';
 ```
 
+### No bare npm imports in shared code used by edge functions
+
+**Rule:** Shared files that are imported by edge functions must use **only relative imports**. They must never import from bare npm package names (e.g. `from 'zod'`, `from 'papaparse'`).
+
+**Why:** Deno resolves npm packages using the `npm:` URL scheme (e.g. `npm:papaparse@5`). Node/Vitest resolves them as bare specifiers via `node_modules`. There is no import map configured in this project, so the two runtimes are incompatible for bare imports. A shared file with `import { z } from 'zod'` will deploy and pass Vitest but **fail at Deno bundle time** with `Relative import path "zod" not prefixed with / or ./ or ../`.
+
+**How to handle npm dependencies in shared logic:**
+
+- If the logic only uses TypeScript types and pure functions with no npm dependencies → put it in `shared/` as normal.
+- If the logic genuinely needs an npm package (e.g. a parser, a schema library):
+  - Write the logic in the edge function itself (or a Deno-only helper alongside the function).
+  - Or use the `npm:` URL scheme **inside the edge function**, and pass only plain data in/out of shared pure functions.
+  - Do **not** add npm imports to shared files that edge functions depend on.
+
+**Example — wrong (breaks Deno):**
+```ts
+// shared/features/integration/schema.ts
+import { z } from 'zod';  // ❌ bare import — fails in Deno
+```
+
+**Example — correct (plain TypeScript validation):**
+```ts
+// shared/features/integration/schema.ts
+import type { CardsRequest } from './types.ts';  // ✅ relative only
+
+export function validateCardsRequest(body: unknown): ... { /* pure TS */ }
+```
+
+**Example — correct (npm package used only inside edge function):**
+```ts
+// backend/supabase/functions/import-cards/index.ts
+import Papa from 'npm:papaparse@5';  // ✅ npm: scheme, Deno-only file
+```
+
 ---
 
 ## 8. Architecture — Edge Functions as Thin Orchestration Layers

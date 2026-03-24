@@ -25,6 +25,7 @@ export const CsvHeaderMap = {
   tip:               "Tip",
   description:       "Description",
   media:             "Media",
+  flags:             "Flags",
   tags:              "Tags",
 } as const;
 

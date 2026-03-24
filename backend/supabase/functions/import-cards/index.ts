@@ -148,7 +148,7 @@ serve(async (req) => {
       // Update existing card
       const { error: updateError } = await adminClient
         .from("cards")
-        .update({ question: card.question, card_type: card.cardType, tip: card.tip ?? null, updated_at: new Date().toISOString() })
+        .update({ question: card.question, card_type: card.cardType, tip: card.tip ?? null, flags: card.flags ?? '', updated_at: new Date().toISOString() })
         .eq("id", resolvedId);
 
       if (updateError) {
@@ -165,7 +165,7 @@ serve(async (req) => {
       // Insert new card
       const { data: newCard, error: insertError } = await adminClient
         .from("cards")
-        .insert({ lesson_id, ext_id: card.extId ?? null, question: card.question, card_type: card.cardType, tip: card.tip ?? null, position: nextPosition++ })
+        .insert({ lesson_id, ext_id: card.extId ?? null, question: card.question, card_type: card.cardType, tip: card.tip ?? null, flags: card.flags ?? '', position: nextPosition++ })
         .select("id").single();
 
       if (insertError || !newCard) {

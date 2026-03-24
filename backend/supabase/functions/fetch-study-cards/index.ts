@@ -80,7 +80,7 @@ serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   const { data: rawCards, error: cardsError } = await adminClient
     .from("cards")
-    .select("id, card_type, question, tip, position, card_answers(answer_text, position, media:media_id(bucket, path))")
+    .select("id, card_type, question, tip, position, flags, card_answers(answer_text, position, media:media_id(bucket, path))")
     .eq("lesson_id", lessonId)
     .order("position");
 
@@ -115,6 +115,7 @@ serve(async (req) => {
       question: card.question,
       tip:      card.tip ?? null,
       position: card.position,
+      flags:    card.flags ?? '',
       // deno-lint-ignore no-explicit-any
       answers:  (card.card_answers ?? []).map((a: any) => {
         const imagePath = a.media ? `${a.media.bucket}/${a.media.path}` : null;
@@ -159,7 +160,7 @@ serve(async (req) => {
       // Step 2: expand to sister lessons in the same course
       const { data: siblingCards, error: siblingError } = await adminClient
         .from("cards")
-        .select("id, card_type, question, tip, position, card_answers(answer_text, position, media:media_id(bucket, path))")
+        .select("id, card_type, question, tip, position, flags, card_answers(answer_text, position, media:media_id(bucket, path))")
         .neq("lesson_id", lessonId)
         .in(
           "lesson_id",
@@ -178,6 +179,7 @@ serve(async (req) => {
           question: card.question,
           tip:      card.tip ?? null,
           position: card.position,
+          flags:    card.flags ?? '',
           // deno-lint-ignore no-explicit-any
           answers:  (card.card_answers ?? []).map((a: any) => ({
             answerText: a.answer_text ?? null,

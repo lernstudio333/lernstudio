@@ -11,14 +11,6 @@ CREATE TABLE public.card_answers (
   CONSTRAINT card_answers_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.media(id),
   CONSTRAINT card_answers_card_id_fkey FOREIGN KEY (card_id) REFERENCES public.cards(id)
 );
-CREATE TABLE public.card_modes (
-  card_id uuid NOT NULL,
-  mode text NOT NULL CHECK (mode = ANY (ARRAY['DISPLAY_ANSWER'::text, 'MULTIPLE_CHOICE'::text, 'TYPED_ANSWER'::text, 'SELF_ASSESSMENT'::text, 'ARRANGE_ORDER'::text])),
-  value integer NOT NULL,
-  min_score integer DEFAULT 0,
-  CONSTRAINT card_modes_pkey PRIMARY KEY (card_id, mode),
-  CONSTRAINT card_modes_card_id_fkey FOREIGN KEY (card_id) REFERENCES public.cards(id)
-);
 CREATE TABLE public.cards (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   ext_id text UNIQUE,
@@ -31,6 +23,7 @@ CREATE TABLE public.cards (
   updated_at timestamp with time zone DEFAULT now(),
   position integer NOT NULL DEFAULT 0,
   tip text,
+  flags text NOT NULL DEFAULT ''::text,
   CONSTRAINT cards_pkey PRIMARY KEY (id),
   CONSTRAINT cards_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.lessons(id)
 );
@@ -63,6 +56,22 @@ CREATE TABLE public.courses (
   CONSTRAINT courses_pkey PRIMARY KEY (id),
   CONSTRAINT courses_program_id_fkey FOREIGN KEY (program_id) REFERENCES public.programs(id),
   CONSTRAINT courses_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.integrations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  token text NOT NULL UNIQUE,
+  user_id uuid NOT NULL,
+  doc_id text NOT NULL,
+  doc_name text NOT NULL,
+  source_id text,
+  lesson_id uuid,
+  scope text NOT NULL DEFAULT 'import'::text,
+  expires_at timestamp with time zone,
+  last_sync timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT integrations_pkey PRIMARY KEY (id),
+  CONSTRAINT integrations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT integrations_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES public.lessons(id)
 );
 CREATE TABLE public.lesson_tags (
   lesson_id uuid NOT NULL,
@@ -100,6 +109,15 @@ CREATE TABLE public.media_tags (
   CONSTRAINT media_tags_pkey PRIMARY KEY (media_id, tag_id),
   CONSTRAINT media_tags_media_id_fkey FOREIGN KEY (media_id) REFERENCES public.media(id),
   CONSTRAINT media_tags_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES public.tags(id)
+);
+CREATE TABLE public.pairing_codes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  code text NOT NULL,
+  user_id uuid NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  used boolean NOT NULL DEFAULT false,
+  CONSTRAINT pairing_codes_pkey PRIMARY KEY (id),
+  CONSTRAINT pairing_codes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,

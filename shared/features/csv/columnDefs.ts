@@ -17,6 +17,7 @@ export type CsvExportRow = {
   answer:       string;
   tip:          string;
   media:        string;
+  flags:        string;
 };
 
 export type ColumnDef = {
@@ -157,6 +158,15 @@ export const CARD_COLUMN_DEFS: ColumnDef[] = [
     alwaysExport: true,
     fromDomain:   (r) => r.media,
     toDomain:     (v) => v,
+  },
+  {
+    field:        'flags',
+    header:       CsvHeaderMap.flags,
+    required:     false,
+    alwaysExport: true,
+    fromDomain:   (r) => r.flags,
+    // Trim each flag after splitting — resilient to "NO_BACKWARD, NO_TYPING" with spaces
+    toDomain:     (v) => v.split(',').map(f => f.trim()).filter(Boolean).join(','),
   },
 ];
 

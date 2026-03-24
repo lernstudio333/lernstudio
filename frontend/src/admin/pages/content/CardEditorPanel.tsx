@@ -118,7 +118,7 @@ function CardEditorPanel({ lessonId, cardId }: Props) {
         <Tab eventKey="details" title="Details">
           <DetailsTab />
         </Tab>
-        <Tab eventKey="modes" title="Modes">
+        <Tab eventKey="modes" title="Settings">
           <CardModesTab />
         </Tab>
       </Tabs>

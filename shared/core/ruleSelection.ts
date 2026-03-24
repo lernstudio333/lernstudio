@@ -19,7 +19,9 @@ export function isValidQuizMode(
   basicCard: BasicCard,
   viable?:  (rule: QuizzingRule) => boolean,
 ): boolean {
-  return (rule.filter === null || rule.filter(basicCard)) &&
+  const blockedByFlag = rule.blockedBy?.some(f => (basicCard.flags ?? []).includes(f)) ?? false;
+  return !blockedByFlag &&
+         (rule.filter === null || rule.filter(basicCard)) &&
          (viable === undefined  || viable(rule));
 }
 

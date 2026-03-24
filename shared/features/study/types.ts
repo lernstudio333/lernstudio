@@ -14,6 +14,7 @@ export type StudyCard = {
   question: string;
   tip:      string | null;
   position: number;
+  flags:    string;   // raw DB value — parse with parseFlags() from shared/core/enums
   answers:  StudyCardAnswer[];
 };
 

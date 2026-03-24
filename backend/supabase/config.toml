@@ -23,3 +23,12 @@ verify_jwt = false
 
 [functions.recent-lessons]
 verify_jwt = false
+
+[functions.integration-pairing-codes]
+verify_jwt = false
+
+[functions.integration-sessions]
+verify_jwt = false
+
+[functions.integration-cards]
+verify_jwt = false

@@ -33,6 +33,33 @@ export const StudyMode = createEnum({
   REPEAT: { order: 1 },
 });
 
+// ── Card flags ────────────────────────────────────────────────
+
+/**
+ * Per-card quiz flags stored as a comma-separated TEXT column on `cards`.
+ * Parse with parseFlags(); check presence with hasFlag().
+ *
+ * NO_BACKWARD — suppress quiz modes that swap question ↔ answer.
+ * NO_TYPING   — suppress typed-answer mode for this card.
+ */
+export const CardFlag = {
+  NO_BACKWARD: 'NO_BACKWARD',
+  NO_TYPING:   'NO_TYPING',
+} as const;
+
+export type CardFlagKey = keyof typeof CardFlag;
+
+/** Parse the raw DB flags string into a string array. Trims each entry. */
+export function parseFlags(raw: string): string[] {
+  if (!raw) return [];
+  return raw.split(',').map(f => f.trim()).filter(Boolean);
+}
+
+/** Returns true if the parsed flags array contains the given flag. */
+export function hasFlag(flags: string[], flag: string): boolean {
+  return flags.includes(flag);
+}
+
 // ── BasicCard  (stub — full Card interface defined in shared/features/cards) ──
 
 /** Lightweight media reference — full public URL resolved before quizzing. */
@@ -52,6 +79,8 @@ export interface BasicCard {
   question: string | string[] | MediaRef | MediaRef[];
   answer:   string | string[] | MediaRef | MediaRef[];
   tip?:     string;
+  /** Pre-parsed card flags (from the DB `flags` TEXT column via parseFlags()). */
+  flags?:   string[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -169,6 +198,8 @@ export type QuizzingRule = {
   filter:      ((card: BasicCard) => boolean)   | null;
   min_score:   number;
   supersede:   AnyEnumEntry;
+  /** Flag names that suppress this rule. If the card has any of these flags the rule is skipped. */
+  blockedBy?:  string[];
 };
 
 // ── CardTypes ─────────────────────────────────────────────────
@@ -182,9 +213,9 @@ export const CardTypes = createEnum({
       { mode: QuizMode.DISPLAY_ANSWER,  label: 'Display Answer',               transformer: null,          filter: null,        min_score: 0, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice',              transformer: null,          filter: null,        min_score: 1, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice (Randomized)', transformer: partRandomize, filter: null,        min_score: 3, supersede: SupersedeMode.REPLACE_LOWER },
-      { mode: QuizMode.TYPED_ANSWER,    label: 'Typed Answer',                 transformer: null,          filter: allowTypedAnswer, min_score: 5, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.TYPED_ANSWER,    label: 'Typed Answer',                 transformer: null,          filter: allowTypedAnswer, min_score: 5, supersede: SupersedeMode.POOL, blockedBy: [CardFlag.NO_TYPING]   },
       { mode: QuizMode.SELF_ASSESSMENT, label: 'Self Assessment',              transformer: null,          filter: null,        min_score: 5, supersede: SupersedeMode.POOL },
-      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice (Backward)',   transformer: backward,      filter: null,        min_score: 7, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice (Backward)',   transformer: backward,      filter: null,        min_score: 7, supersede: SupersedeMode.POOL, blockedBy: [CardFlag.NO_BACKWARD] },
     ] as QuizzingRule[],
   },
   MULTI_CARD: {
@@ -229,7 +260,7 @@ export const CardTypes = createEnum({
       { mode: QuizMode.DISPLAY_ANSWER,  label: 'Display Answer',  transformer: null,                            filter: null, min_score: 0, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: pickFirstAnswer,                 filter: null, min_score: 1, supersede: SupersedeMode.REPLACE_LOWER },
       { mode: QuizMode.SELF_ASSESSMENT, label: 'Self Assessment', transformer: pickAnswer,                      filter: null, min_score: 5, supersede: SupersedeMode.POOL },
-      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: (c) => backward(pickAnswer(c)), filter: null, min_score: 7, supersede: SupersedeMode.POOL },
+      { mode: QuizMode.MULTIPLE_CHOICE, label: 'Multiple Choice', transformer: (c) => backward(pickAnswer(c)), filter: null, min_score: 7, supersede: SupersedeMode.POOL, blockedBy: [CardFlag.NO_BACKWARD] },
     ] as QuizzingRule[],
   },
 });

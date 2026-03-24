@@ -83,6 +83,8 @@ export function validateRows(
     const answer      = r.answer   ?? '';
     const media       = r.media    ?? '';
     const tip         = r.tip      ?? '';
+    // Normalize flags: trim each entry after splitting, drop empty parts
+    const flags       = (r.flags ?? '').split(',').map(f => f.trim()).filter(Boolean).join(',');
 
     // ID must be a valid UUID if present
     if (id && !isValidUuid(id)) {
@@ -152,7 +154,8 @@ export function validateRows(
         question,
         textAnswers:    isImages ? [] : parseAnswerFromCsv(answer),
         mediaFilenames: isImages ? media.split(',').map(f => f.trim()).filter(Boolean) : [],
-        tip:            tip || undefined,
+        tip:            tip   || undefined,
+        flags:          flags || undefined,
       });
     }
   }

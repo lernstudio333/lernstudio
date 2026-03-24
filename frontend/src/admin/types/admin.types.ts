@@ -1,7 +1,5 @@
 export type CardType = 'SINGLE_CARD' | 'MULTI_CARD' | 'SYNONYM' | 'GAP' | 'IMAGES';
 
-export type CardModeType = 'DISPLAY_ANSWER' | 'MULTIPLE_CHOICE' | 'TYPED_ANSWER' | 'SELF_ASSESSMENT' | 'ARRANGE_ORDER';
-
 export interface CardAnswer {
   id: string;
   card_id: string;
@@ -9,13 +7,6 @@ export interface CardAnswer {
   position: number;
   media_id: string | null;
   media?: { path: string } | null;
-}
-
-export interface CardMode {
-  card_id:   string;
-  mode:      CardModeType;
-  value:     number;
-  min_score: number;
 }
 
 export interface AdminCard {
@@ -28,10 +19,10 @@ export interface AdminCard {
   details: string | null;
   source: string | null;
   position: number;
+  flags: string;   // comma-separated flag names, e.g. 'NO_BACKWARD,NO_TYPING'
   created_at: string;
   updated_at: string;
   answers: CardAnswer[];
-  modes: CardMode[];
 }
 
 export interface AdminLesson {

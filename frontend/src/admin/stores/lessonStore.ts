@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { arrayMove } from '@dnd-kit/sortable';
 import { CardTypes } from 'shared';
 import { supabase } from '../../lib/supabase';
-import type { AdminCard, CardAnswer, CardMode } from '../types/admin.types';
+import type { AdminCard, CardAnswer } from '../types/admin.types';
 
 type SortField = 'position' | 'question' | 'card_type' | 'created_at';
 type SortDir = 'asc' | 'desc';
@@ -70,7 +70,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     set({ isLoadingCards: true });
     const { data, error } = await supabase
       .from('cards')
-      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path))')
       .eq('lesson_id', lessonId)
       .order('position');
     if (error) { console.error('reloadCards error', error); set({ isLoadingCards: false }); return; }
@@ -84,7 +84,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const [cardsRes, lessonRes] = await Promise.all([
       supabase
         .from('cards')
-        .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
+        .select('*, answers:card_answers(*, media:media(path))')
         .eq('lesson_id', id)
         .order('position'),
       supabase
@@ -115,7 +115,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
   },
 
   initEditBuffer(card) {
-    set({ editBuffer: { ...card, answers: [...card.answers], modes: [...card.modes] }, isDirty: false });
+    set({ editBuffer: { ...card, answers: [...card.answers] }, isDirty: false });
   },
 
   updateEditBuffer(partial) {
@@ -126,7 +126,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
     const { editBuffer, cards } = get();
     if (!editBuffer?.id) return;
 
-    const { id, answers, modes, ...cardFields } = editBuffer as AdminCard;
+    const { id, answers, ...cardFields } = editBuffer as AdminCard;
 
     // Upsert the card row
     console.log('[saveCard] upserting card:', { id, ...cardFields });
@@ -152,22 +152,10 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       console.log('[saveCard] answers insert result:', { answersData, answersError });
     }
 
-    // Replace modes: delete then insert
-    await supabase.from('card_modes').delete().eq('card_id', id);
-    if (modes && modes.length > 0) {
-      const modeRows: Omit<CardMode, 'id'>[] = modes.map(m => ({
-        card_id: id,
-        mode: m.mode,
-        value: m.value ?? 1,
-        min_score: m.min_score ?? 0,
-      }));
-      await supabase.from('card_modes').insert(modeRows);
-    }
-
     // Re-fetch the saved card to get fresh data
     const { data: fresh } = await supabase
       .from('cards')
-      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path))')
       .eq('id', id)
       .single();
 
@@ -203,7 +191,6 @@ export const useLessonStore = create<LessonState>((set, get) => ({
   },
 
   async batchMove(cardIds, targetLessonId) {
-    const { cards } = get();
     // Get current max position in target
     const { data: targetCards } = await supabase
       .from('cards')
@@ -254,7 +241,7 @@ export const useLessonStore = create<LessonState>((set, get) => ({
         card_type: CardTypes.SINGLE_CARD.key,
         position: maxPos + 1,
       })
-      .select('*, answers:card_answers(*, media:media(path)), modes:card_modes(*)')
+      .select('*, answers:card_answers(*, media:media(path))')
       .single();
     if (error || !data) { console.error('addNewCard error', error); return null; }
     set(s => ({ cards: [...s.cards, data as AdminCard] }));
