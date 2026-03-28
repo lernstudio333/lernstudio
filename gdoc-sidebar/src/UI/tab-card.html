@@ -1,0 +1,45 @@
+<div class="card-custom">
+  <label class="form-label">Card Type</label>
+  <div class="type-grid mb-3">
+    <input type="radio" class="btn-check" name="cardType" id="tSC" value="SINGLE_CARD" checked>
+    <label class="btn btn-outline-primary" for="tSC">Single</label>
+    <input type="radio" class="btn-check" name="cardType" id="tMC" value="MULTI_CARD">
+    <label class="btn btn-outline-primary" for="tMC">Multi</label>
+    <input type="radio" class="btn-check" name="cardType" id="tSYN" value="SYNONYM">
+    <label class="btn btn-outline-primary" for="tSYN">Synonym</label>
+    <input type="radio" class="btn-check" name="cardType" id="tGAP" value="GAP">
+    <label class="btn btn-outline-primary" for="tGAP">Gap</label>
+    <input type="radio" class="btn-check" name="cardType" id="tIMG" value="IMAGES">
+    <label class="btn btn-outline-primary" for="tIMG">Images</label>
+  </div>
+
+  <div class="form-check mb-1">
+    <input class="form-check-input" type="checkbox" id="fNoBackwards">
+    <label class="form-check-label extra-small" for="fNoBackwards">Don't quiz backwards</label>
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="fNoTyping">
+    <label class="form-check-label extra-small" for="fNoTyping">Don't use typing quiz</label>
+  </div>
+  
+  <button id="btnUpsert" class="btn btn-primary btn-flat w-100 py-2 shadow-sm" onclick="handleInsertMarker(event)">Upsert Marker</button>
+</div>
+
+<div id="cardPreview" class="card-custom preview-area d-none">
+  <div class="d-flex justify-content-between align-items-start mb-2">
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" id="previewType">TYPE</span>
+    <span class="text-muted extra-small" id="previewId">#ID</span>
+  </div>
+  <div class="preview-label">CONTEXT & QUESTION</div>
+  <div id="previewQuestion" class="preview-text mb-2"></div>
+  <div class="preview-label">ANSWER / CHILDREN</div>
+  <ul id="previewAnswers" class="preview-list"></ul>
+</div>
+
+<div class="nav-cluster mt-3">
+  <div class="btn-group w-100 shadow-sm">
+    <button class="btn btn-outline-secondary btn-sm" onclick="triggerNav('PREVIOUS')">◀</button>
+    <button class="btn btn-outline-primary btn-sm fw-bold" onclick="triggerNav('CURRENT')">⟳</button>
+    <button class="btn btn-outline-secondary btn-sm" onclick="triggerNav('NEXT')">▶</button>
+  </div>
+</div>

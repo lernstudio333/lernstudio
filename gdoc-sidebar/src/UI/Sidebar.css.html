@@ -1,0 +1,65 @@
+<style>
+  :root {
+    --app-blue: #1a73e8;
+    --app-bg: #f9fafb;
+    --app-card: #ffffff;
+    --app-text: #374151;
+    --app-muted: #6b7280;
+    --app-border: #e5e7eb;
+  }
+
+  body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: var(--app-bg); 
+    color: var(--app-text);
+    font-size: 0.875rem; 
+    padding: 0; /* Let the tab-panes handle padding */
+    line-height: 1.5;
+  }
+
+  /* Tab Styling */
+  .nav-tabs { border-bottom: 1px solid var(--app-border); background: #fff; }
+  .nav-link { 
+    font-size: 0.75rem; font-weight: 600; color: var(--app-muted); 
+    border: none !important; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 12px 16px;
+  }
+  .nav-link.active { 
+    color: var(--app-blue) !important; 
+    border-bottom: 3px solid var(--app-blue) !important; 
+    background: none !important; 
+  }
+
+  /* Container Cards */
+  .card-custom { 
+    background: var(--app-card); 
+    border-radius: 8px; 
+    padding: 16px; 
+    margin-bottom: 12px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    border: 1px solid var(--app-border); 
+  }
+
+  /* Inspector / Preview Specifics */
+  .preview-area { border-left: 4px solid var(--app-blue); }
+  .preview-label { font-size: 0.65rem; font-weight: 800; color: var(--app-blue); margin-top: 10px; text-transform: uppercase; }
+  .preview-text { font-size: 0.9rem; font-weight: 500; color: var(--app-text); line-height: 1.4; margin-top: 2px; }
+  .preview-list { padding-left: 1.1rem; margin: 4px 0 0 0; font-size: 0.85rem; color: var(--app-muted); }
+  
+  /* Form Elements */
+  .form-label { font-size: 0.7rem; font-weight: 700; color: var(--app-muted); text-transform: uppercase; }
+  .extra-small { font-size: 0.72rem; }
+  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .type-grid .btn { font-size: 0.65rem; font-weight: 600; padding: 6px 0; border-radius: 6px; }
+  
+  /* Navigation */
+  .nav-cluster .btn { font-size: 0.9rem; padding: 10px 0; }
+  .btn-flat { border-radius: 6px; font-weight: 600; transition: all 0.2s; }
+  
+  /* OTP Boxes */
+  .otp-container { display: flex; gap: 6px; justify-content: center; }
+  .otp-input { 
+    width: 32px; height: 42px; text-align: center; border: 1px solid var(--app-border); 
+    border-radius: 6px; font-weight: 700; font-size: 1.1rem; 
+  }
+</style>

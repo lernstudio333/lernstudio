@@ -1,0 +1,105 @@
+<script>
+  const el = (id) => document.getElementById(id);
+  const otpInputs = document.querySelectorAll('.otp-input');
+
+  // --- 1. OTP AUTO-FOCUS & PASTE (From your original) ---
+  if (otpInputs.length > 0) {
+    otpInputs[0].addEventListener('paste', (e) => {
+      e.preventDefault();
+      const data = e.clipboardData.getData('text').trim();
+      if (!/^\d{6}$/.test(data)) return; 
+      data.split('').forEach((char, i) => { if (otpInputs[i]) otpInputs[i].value = char; });
+      otpInputs[5].focus();
+    });
+
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        if (input.value && index < 5) otpInputs[index + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && index > 0) otpInputs[index - 1].focus();
+      });
+    });
+  }
+
+  // --- 2. SURGICAL NAVIGATION ---
+  function triggerNav(direction) {
+    toggleLoading(true, "Searching...");
+    google.script.run
+      .withSuccessHandler((res) => {
+        toggleLoading(false);
+        if (res.success && res.card) {
+          renderCardToInspector(res.card);
+          syncUIFromMetadata(res.card);
+        } else {
+          showStatus(res.message || "No card found", "text-warning");
+        }
+      })
+      .getSurgicalPreview(direction);
+  }
+
+  // --- 3. UPSERT ORCHESTRATOR ---
+  function handleInsertMarker(event) {
+    const btn = event.currentTarget;
+    const cardType = document.querySelector('input[name="cardType"]:checked').value;
+    const params = {
+      cardType: cardType,
+      noBackward: el('fNoBackwards').checked,
+      noTyping: el('fNoTyping').checked
+    };
+
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+    google.script.run
+      .withSuccessHandler((res) => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        if (res.success) {
+          showStatus(res.action === 'PREVIEW_ONLY' ? "Reviewing Card" : "Marker Created! ✨", "text-success");
+          // If the back-end returned metadata, sync the UI
+          if(res.cardMetadata) syncUIFromMetadata(res.cardMetadata);
+        }
+      })
+      .handleInsertMarkerOrchestrator(params);
+  }
+
+  // --- 4. HELPERS ---
+  function syncUIFromMetadata(data) {
+    // Works with both RawCard (id) and CardMetadata (id)
+    const type = data.typeKey || data.type;
+    const flags = data.flags || [];
+    
+    const radio = document.querySelector(`input[name="cardType"][value="${type}"]`);
+    if (radio) radio.checked = true;
+    el('fNoBackwards').checked = flags.includes("NO_BW");
+    el('fNoTyping').checked = flags.includes("NO_TYPING");
+  }
+
+  function renderCardToInspector(card) {
+    el('cardPreview').classList.remove('d-none');
+    el('previewId').innerText = `#${card.cardId.toString().slice(-4)}`;
+    el('previewType').innerText = card.type.replace('_', ' ');
+    const context = card.parents.length > 0 ? `<span class="text-muted opacity-75">${card.parents.join(' › ')} › </span>` : '';
+    el('previewQuestion').innerHTML = `${context}<br>${card.question}`;
+    const list = el('previewAnswers');
+    list.innerHTML = card.answer ? `<li>${card.answer}</li>` : 
+      (card.directChildren?.map(c => `<li>${c}</li>`).join('') || '<li>No children</li>');
+  }
+
+  function showStatus(msg, className) {
+    const s = el('statusMessage');
+    s.innerText = msg;
+    s.className = `small fw-bold text-center mt-2 ${className}`;
+    s.classList.remove('d-none');
+    setTimeout(() => s.classList.add('d-none'), 3000);
+  }
+
+  function toggleLoading(show, text = "") {
+    const s = el('statusMessage');
+    s.innerText = text;
+    s.className = "small text-muted text-center mt-2";
+    show ? s.classList.remove('d-none') : s.classList.add('d-none');
+  }
+</script>

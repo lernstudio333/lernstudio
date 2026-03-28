@@ -1,0 +1,29 @@
+<div id="pairingUi" class="card-custom">
+  <label class="form-label text-center mb-3">Pairing Code</label>
+  <div class="otp-container mb-4">
+    <input type="text" maxlength="1" class="otp-input" id="o1" autocomplete="off">
+    <input type="text" maxlength="1" class="otp-input" id="o2" autocomplete="off">
+    <input type="text" maxlength="1" class="otp-input" id="o3" autocomplete="off">
+    <input type="text" maxlength="1" class="otp-input" id="o4" autocomplete="off">
+    <input type="text" maxlength="1" class="otp-input" id="o5" autocomplete="off">
+    <input type="text" maxlength="1" class="otp-input" id="o6" autocomplete="off">
+  </div>
+  
+  <label for="lessonId" class="form-label">Target Lesson ID</label>
+  <input type="text" id="lessonId" class="form-control mb-4" placeholder="uuid-lesson-id">
+  
+  <button id="btnConnect" class="btn btn-primary btn-flat w-100 py-2 shadow-sm" onclick="handleConnect()">Connect App</button>
+</div>
+
+<div id="transferUi" class="card-custom d-none border border-success-subtle">
+  <div class="d-flex align-items-center mb-4 text-success">
+    <div class="spinner-grow spinner-grow-sm me-2" role="status"></div>
+    <span class="fw-bold">Connection Established</span>
+  </div>
+  <button id="btnCommit" class="btn btn-success btn-flat w-100 py-3 fw-bold shadow-sm mb-3" onclick="runTransfer()">
+    TRANSFER CARDS NOW
+  </button>
+  <div class="text-center">
+    <button class="btn btn-link btn-sm text-secondary text-decoration-none" onclick="disconnect()">Switch Lesson</button>
+  </div>
+</div>

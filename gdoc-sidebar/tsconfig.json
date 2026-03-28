@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "module": "None",               /* IMPORTANT: Tells TS this is NOT a module system */
+    "moduleResolution": "node",
+    "types": [
+      "google-apps-script"          /* types for DocumentApp + Docs REST API (apis/docs_v1.d.ts) */
+    ],
+    "strict": true,
+    "skipLibCheck": true,           /* Skip type checks on .d.ts files (workaround for @types/google-apps-script MimeType bug) */
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "isolatedModules": false        /* IMPORTANT: Allows files to share global scope */
+  },
+  "include": [
+    "src/**/*.ts"                   /* Scans EVERYTHING in src and subfolders */
+  ]
+}
