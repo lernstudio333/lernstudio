@@ -57,11 +57,13 @@ function parseCardUrl(url: string | null): CardMeta | null {
 
   if (!idMatch) return null;
 
-  return {
+  const meta: CardMeta = {
     id:           idMatch[1],
     typeKey:      (typeMatch ? typeMatch[1] : 'UNKNOWN') as CardType,
     flags:        (flagsMatch && flagsMatch[1]) ? flagsMatch[1].split(',') : [],
     includeAbove: depthMatch ? parseInt(depthMatch[1], 10) : 0,
     fullUrl:      url
   };
+  debugLog('parseCardUrl', meta);
+  return meta;
 }

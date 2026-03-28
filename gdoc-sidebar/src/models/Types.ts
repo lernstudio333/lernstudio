@@ -22,13 +22,17 @@ interface RawCard {
   flags: string[];
   rowIndex: number;
   fullUrl?: string;
+  warning?: string;       // Set when unexpected text is found to the right of a non-SINGLE_CARD marker
 }
 
 interface NormalizedRow {
   index: number;
-  text: string;
+  text: string;           // Full concatenated paragraph text (used for parent/child matching)
   level: number;
   cardMetadata: CardMeta | null;
+  textBeforeLink: string; // Text to the left of the card link in this paragraph
+  linkText: string;       // Text content of the linked run (marker symbol or gap word)
+  textAfterLink: string;  // Text to the right of the card link (answer for SINGLE_CARD, warning for others)
 }
 
 interface NavigationResponse {

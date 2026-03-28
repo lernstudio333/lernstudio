@@ -4,7 +4,7 @@
   <base target="_top">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <?!= include('ui/sidebar.css'); ?>
+  <?!= include('UI/Sidebar.css'); ?>
 </head>
 <body>
 
@@ -22,19 +22,19 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active p-3" id="pane-cards">
-      <?!= include('ui/card-tab'); ?>
+      <?!= include('UI/tab-card'); ?>
     </div>
     
     <div class="tab-pane fade p-3" id="pane-transfer">
-      <?!= include('ui/transfer-tab'); ?>
+      <?!= include('UI/tab-transfer'); ?>
     </div>
 
     <div class="tab-pane fade p-3" id="pane-info">
-      <?!= include('ui/info-tab'); ?>
+      <?!= include('UI/tab-info'); ?>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <?!= include('ui/sidebar.js'); ?>
+  <?!= include('UI/Sidebar.js'); ?>
 </body>
 </html>

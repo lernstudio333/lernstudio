@@ -1,5 +1,7 @@
 /**
- * Fetches the document via REST API and flattens it into a map.
+ * Fetches the document via REST API and flattens it into a normalised row map.
+ * Each row captures the paragraph's full text, indentation level, card metadata,
+ * and the three-way split around the card link (before / link-text / after).
  */
 function gatherDocumentMap(docId: string): NormalizedRow[] {
   const apiDoc = Docs.Documents!.get(docId, { fields: 'body/content' });
@@ -9,24 +11,45 @@ function gatherDocumentMap(docId: string): NormalizedRow[] {
     .filter(item => "paragraph" in item)
     .map((item, idx) => {
       const p = item.paragraph!;
-      const text = p.elements?.map(e => e.textRun?.content || "").join("").trim() || "";
       const level = p.bullet ? (p.bullet.nestingLevel || 0) : -1;
-      
-      // Find link in elements
+
+      // Split elements into before-link / link / after-link segments
+      let textBeforeLink = '';
+      let linkText = '';
+      let textAfterLink = '';
       let url: string | null = null;
-      p.elements?.some(e => {
-        if (e.textRun?.textStyle?.link?.url) {
-          url = e.textRun.textStyle.link.url;
-          return true;
+      let foundLink = false;
+
+      (p.elements || []).forEach(e => {
+        const content = e.textRun?.content || '';
+        const linkUrl = e.textRun?.textStyle?.link?.url || null;
+
+        if (!foundLink && linkUrl) {
+          url = linkUrl;
+          linkText = content;
+          foundLink = true;
+        } else if (!foundLink) {
+          textBeforeLink += content;
+        } else {
+          textAfterLink += content;
         }
-        return false;
       });
 
+      // Trim trailing newlines that the Docs API appends to paragraph content
+      textBeforeLink = textBeforeLink.replace(/\n$/, '').trim();
+      linkText       = linkText.replace(/\n$/, '').trim();
+      textAfterLink  = textAfterLink.replace(/\n$/, '').trim();
+
+      const text = (textBeforeLink + linkText + textAfterLink).trim();
+
       return {
-        index: idx,
-        text: text,
-        level: level,
-        cardMetadata: url ? parseCardUrl(url) : null // From models/Metadata.ts
+        index:          idx,
+        text,
+        level,
+        cardMetadata:   url ? parseCardUrl(url) : null,
+        textBeforeLink,
+        linkText,
+        textAfterLink
       };
     });
 }

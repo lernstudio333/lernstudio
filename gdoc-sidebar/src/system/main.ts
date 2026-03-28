@@ -14,7 +14,7 @@ function onOpen() {
  * Renders the sidebar UI
  */
 function showSidebar() {
-  const html = HtmlService.createTemplateFromFile('ui/sidebar')
+  const html = HtmlService.createTemplateFromFile('UI/Sidebar')
     .evaluate()
     .setTitle('Lern-Studio Curator')
     .setWidth(300);

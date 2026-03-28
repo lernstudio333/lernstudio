@@ -1,20 +1,71 @@
 /**
- * Builds a full RawCard by analyzing the map around a specific index.
+ * Returns the display text of a row for use as a parent breadcrumb or child answer.
+ *
+ * - No card link:   textBeforeLink (equals full text since all content goes there when no link exists)
+ * - Non-GAP card:   textBeforeLink + textAfterLink joined (marker/link text stripped)
+ * - GAP card:       textBeforeLink + linkText + textAfterLink joined (full sentence, gap word shown as-is)
+ *
+ * Note: GAP cards show the real word here — the [...]  form is only used for the quiz question itself.
+ */
+function getRowDisplayText(row: NormalizedRow): string {
+  // For GAP cards include the real linked word; for all others (no link or marker cards) strip it
+  const cleanLinkText = row.cardMetadata?.typeKey === 'GAP' ? row.linkText : '';
+  const result = [row.textBeforeLink, cleanLinkText, row.textAfterLink].filter(Boolean).join(' ');
+  debugLog('getRowDisplayText', { text: row.text, type: row.cardMetadata?.typeKey, result });
+  return result;
+}
+
+/**
+ * Builds a full RawCard by analysing the document map around a specific index.
+ * question and answer are derived from the paragraph's before/link/after split.
  */
 function buildRawCard(allRows: NormalizedRow[], index: number): RawCard {
   const row = allRows[index];
-  if (!row.cardMetadata) throw new Error("No metadata found at index " + index);
+  if (!row.cardMetadata) throw new Error("No card metadata at index " + index);
 
-  return {
-    cardId: row.cardMetadata.id,
-    type: row.cardMetadata.typeKey,
-    question: row.text,
-    parents: findParentContext(allRows, index, row.cardMetadata.includeAbove),
+  const type = row.cardMetadata.typeKey;
+  let question: string;
+  let answer: string | undefined;
+  let warning: string | undefined;
+
+  if (type === 'GAP') {
+    // Question = surrounding paragraph with the linked word replaced by [...]
+    // Answer   = the linked word itself
+    const left  = row.textBeforeLink ? row.textBeforeLink + ' ' : '';
+    const right = row.textAfterLink  ? ' ' + row.textAfterLink  : '';
+    question = `${left}[...]${right}`.trim();
+    answer   = row.linkText;
+
+  } else if (type === 'SINGLE_CARD') {
+    // Question = text left of the marker
+    // Answer   = text right of the marker
+    question = row.textBeforeLink;
+    answer   = row.textAfterLink || undefined;
+
+  } else {
+    // MULTI_CARD | SYNONYM | IMAGES
+    // Question = text left of the marker; answers come from directChildren
+    // Text to the right of the marker is unexpected — surface as a warning
+    question = row.textBeforeLink;
+    if (row.textAfterLink) {
+      warning = `Unexpected text after marker: "${row.textAfterLink}"`;
+    }
+  }
+
+  const card: RawCard = {
+    cardId:         row.cardMetadata.id,
+    type,
+    question,
+    answer,
+    parents:        findParentContext(allRows, index, row.cardMetadata.includeAbove),
     directChildren: findDirectChildren(allRows, index),
-    flags: row.cardMetadata.flags,
-    rowIndex: index,
-    fullUrl: row.cardMetadata.fullUrl
+    flags:          row.cardMetadata.flags,
+    rowIndex:       index,
+    fullUrl:        row.cardMetadata.fullUrl,
+    warning
   };
+  debugLog('buildRawCard', card);
+  return card;
 }
 
 function findParentContext(allRows: NormalizedRow[], startIdx: number, limit: number): string[] {
@@ -22,11 +73,10 @@ function findParentContext(allRows: NormalizedRow[], startIdx: number, limit: nu
   const startRow = allRows[startIdx];
   let currentLevel = startRow.level === -1 ? 99 : startRow.level;
 
-  // Search backwards for rows with a lower level (indentation)
   for (let i = startIdx - 1; i >= 0; i--) {
     const row = allRows[i];
     if (row.level !== -1 && row.level < currentLevel) {
-      parents.unshift(row.text);
+      parents.unshift(getRowDisplayText(row));
       currentLevel = row.level;
     }
     if (parents.length >= limit) break;
@@ -37,17 +87,14 @@ function findParentContext(allRows: NormalizedRow[], startIdx: number, limit: nu
 function findDirectChildren(allRows: NormalizedRow[], startIdx: number): string[] {
   const children: string[] = [];
   const startLevel = allRows[startIdx].level;
-  
-  // If not a bullet, it can't have children in our model
+
   if (startLevel === -1) return [];
 
   for (let i = startIdx + 1; i < allRows.length; i++) {
     const row = allRows[i];
-    // Stop if we hit a row that is at the same level or higher (closer to margin)
     if (row.level <= startLevel && row.level !== -1) break;
-    // Only collect immediate children (startLevel + 1)
     if (row.level === startLevel + 1) {
-      children.push(row.text);
+      children.push(getRowDisplayText(row));
     }
   }
   return children;
