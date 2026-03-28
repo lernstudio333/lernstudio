@@ -1,0 +1,23 @@
+{
+  "name": "gdoc-sidebar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Google Doc Sidebar Integration",
+  "scripts": {
+    "login": "clasp login --no-localhost",
+    "pull": "clasp pull",
+    "typecheck": "tsc --noEmit",
+    "flatten": "node scripts/flatten-all.js",
+    "build": "rimraf build tmp && node scripts/flatten-all.js && tsc -p tsconfig.build.json",
+    "push": "npm run build && clasp push --force",
+    "watch": "clasp push -w",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.3.0",
+    "@types/google-apps-script": "^1.0.100",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
-    "module": "None",               /* IMPORTANT: Tells TS this is NOT a module system */
+    "target": "ES2019",
+    "lib": ["ES2019"],
+    "module": "None",               /* IMPORTANT: No module system — all globals, required by GAS */
     "moduleResolution": "node",
+    "noEmit": true,                 /* Type-check only — build uses tsconfig.build.json */
     "types": [
       "google-apps-script"          /* types for DocumentApp + Docs REST API (apis/docs_v1.d.ts) */
     ],
     "strict": true,
-    "skipLibCheck": true,           /* Skip type checks on .d.ts files (workaround for @types/google-apps-script MimeType bug) */
     "noImplicitAny": false,
+    "skipLibCheck": true,           /* Workaround for @types/google-apps-script MimeType duplicate */
     "esModuleInterop": true,
-    "isolatedModules": false        /* IMPORTANT: Allows files to share global scope */
+    "isolatedModules": false,       /* IMPORTANT: Allows files to share global scope */
+    "declaration": false            /* No .d.ts output needed */
   },
   "include": [
-    "src/**/*.ts"                   /* Scans EVERYTHING in src and subfolders */
+    "src/**/*.ts"
   ]
 }
