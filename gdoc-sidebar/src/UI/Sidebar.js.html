@@ -133,8 +133,8 @@
 
   function handleConnect() {
     const code = Array.from(document.querySelectorAll('.otp-input'))
-      .map((i) => (i as HTMLInputElement).value).join('');
-    const lessonId = (el('lessonId') as HTMLInputElement).value.trim();
+      .map((i) => i.value).join('');
+    const lessonId = el('lessonId').value.trim();
 
     if (!/^\d{6}$/.test(code)) return showStatus("Please enter a 6-digit pairing code.", "text-danger");
     if (!lessonId)              return showStatus("Please enter a Lesson ID.", "text-danger");
@@ -165,15 +165,73 @@
         el('transferUi').classList.add('d-none');
         el('pairingUi').classList.remove('d-none');
         // Clear OTP inputs
-        document.querySelectorAll('.otp-input').forEach((i) => (i as HTMLInputElement).value = '');
-        (el('lessonId') as HTMLInputElement).value = '';
+        document.querySelectorAll('.otp-input').forEach((i) => i.value = '');
+        el('lessonId').value = '';
       })
       .disconnectLesson();
   }
 
   function runTransfer() {
-    // TODO: implement transfer workflow
-    showStatus("Transfer not yet implemented.", "text-warning");
+    const btn = el('btnCommit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Checking...';
+
+    google.script.run
+      .withSuccessHandler((res) => {
+        btn.disabled = false;
+        btn.innerHTML = 'Transfer Cards';
+        if (!res.success) {
+          showStatus(res.message || 'Transfer check failed.', 'text-danger');
+          return;
+        }
+        if (res.analysis.nothingToDo) {
+          showStatus('Already in sync — nothing to transfer.', 'text-success');
+          return;
+        }
+        // Show dry-run report
+        const lines = [];
+        if (res.analysis.insertedCount > 0) lines.push(`<li>${res.analysis.insertedCount} card(s) to insert</li>`);
+        if (res.analysis.updatedCount  > 0) lines.push(`<li>${res.analysis.updatedCount} card(s) to update</li>`);
+        el('reportList').innerHTML = lines.join('');
+        btn.classList.add('d-none');
+        el('transferReport').classList.remove('d-none');
+      })
+      .withFailureHandler((err) => {
+        btn.disabled = false;
+        btn.innerHTML = 'Transfer Cards';
+        showStatus(err.message || 'Script error.', 'text-danger');
+      })
+      .runTransferWorkflow(true);
+  }
+
+  function confirmTransfer() {
+    const btn = el('btnConfirm');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Transferring...';
+
+    google.script.run
+      .withSuccessHandler((res) => {
+        btn.disabled = false;
+        btn.innerHTML = 'Confirm Transfer';
+        el('transferReport').classList.add('d-none');
+        el('btnCommit').classList.remove('d-none');
+        if (res.success) {
+          showStatus(`Done! ${res.analysis.insertedCount} inserted, ${res.analysis.updatedCount} updated.`, 'text-success');
+        } else {
+          showStatus(res.message || 'Transfer failed.', 'text-danger');
+        }
+      })
+      .withFailureHandler((err) => {
+        btn.disabled = false;
+        btn.innerHTML = 'Confirm Transfer';
+        showStatus(err.message || 'Script error.', 'text-danger');
+      })
+      .runTransferWorkflow(false);
+  }
+
+  function cancelTransfer() {
+    el('transferReport').classList.add('d-none');
+    el('btnCommit').classList.remove('d-none');
   }
 
   // Initialise transfer tab state on load

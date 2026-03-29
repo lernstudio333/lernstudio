@@ -99,7 +99,7 @@ function saveConnectionInfo(connection: LsConnection): void {
  * No auth header required — the pairing code itself is the proof of identity.
  */
 function exchangeCodeForToken(code: string, lessonId: string, docId: string, docName: string): PairingResponse {
-  const url = `${CONFIG.API_BASE_URL}/integration/sessions`;
+  const url = `${CONFIG.API_BASE_URL}/integration-sessions`;
 
   const payload = JSON.stringify({
     pairing_code: code,

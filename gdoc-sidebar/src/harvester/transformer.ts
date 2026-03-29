@@ -10,7 +10,7 @@ export function rawCardToApiCard(rawCard: RawCard, docId: string): ApiCard {
   return {
     extId:    `${docId}#${rawCard.cardId}`,
     cardType: rawCard.type,
-    question: rawCard.question,
+    question: [...rawCard.parents, rawCard.question].join(' > '),
     answer:   rawCard.answer,
     position: rawCard.rowIndex
   };

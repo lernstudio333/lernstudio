@@ -67,7 +67,7 @@ function runTransferWorkflow(isDryRun: boolean = true) {
  * This is the TypeScript version of your `submitCards(dryRun)` helper.
  */
 function transportToLernStudio(cards: ApiCard[], dryRun: boolean, token: string): SyncReport {
-  const url = `${CONFIG.API_BASE_URL}/integration/cards`;
+  const url = `${CONFIG.API_BASE_URL}/integration-cards`;
 
   const payload = JSON.stringify({ dry_run: dryRun, cards });
 

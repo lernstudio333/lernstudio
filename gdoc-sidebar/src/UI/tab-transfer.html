@@ -18,10 +18,25 @@
 <div id="transferUi" class="card-custom d-none">
   <p class="text-muted extra-small mb-1">Paired with lesson</p>
   <p id="lessonBreadcrumb" class="fw-bold mb-4"></p>
+
+  <!-- Idle state -->
   <button id="btnCommit" class="btn btn-primary btn-flat w-100 py-2 shadow-sm mb-3" onclick="runTransfer()">
     Transfer Cards
   </button>
-  <div class="text-center">
+
+  <!-- Dry-run report (shown after preview) -->
+  <div id="transferReport" class="d-none">
+    <p class="small fw-bold mb-2">Ready to sync:</p>
+    <ul class="small mb-3" id="reportList"></ul>
+    <button id="btnConfirm" class="btn btn-success btn-flat w-100 py-2 shadow-sm mb-2" onclick="confirmTransfer()">
+      Confirm Transfer
+    </button>
+    <div class="text-center">
+      <button class="btn btn-link btn-sm text-secondary text-decoration-none" onclick="cancelTransfer()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="text-center mt-2">
     <button class="btn btn-link btn-sm text-secondary text-decoration-none" onclick="disconnect()">Switch Lesson</button>
   </div>
 </div>

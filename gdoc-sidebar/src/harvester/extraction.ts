@@ -79,9 +79,9 @@ function findParentContext(allParas: StructuredParagraph[], startIdx: number, in
   for (let i = startIdx - 1; i >= 0; i--) {
     const para = allParas[i];
     if (para.level < currentLevel) {
+      if (parents.length >= includeAbove) break;
       parents.unshift(getRowDisplayText(para));
       currentLevel = para.level;
-      if (parents.length >= includeAbove) break;
     }
   }
   return parents;

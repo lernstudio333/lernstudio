@@ -97,14 +97,14 @@ The Harvester must follow these strict extraction rules for each card type:
 ### 2. GAP (The Cloze Deletion Logic)
 **Trigger:** A link containing `cardtype=GAP` wrapping a specific string of text within a paragraph.
 
-* **Question Source:** The entire surrounding paragraph, but with the linked text replaced by a placeholder (e.g., `[...]`).
+* **Question Source:** The entire surrounding paragraph, but with the linked text replaced by `...`.
 * **Answer Source:** The exact text string contained inside the link.
 
 **Example Input:**
 `Lorem ipsum [dolor](www.link.com?cardtype=GAP) sit amet.`
 
 **Resulting Extraction:**
-* **Question:** `Lorem ipsum [...] sit amet.`
+* **Question:** `Lorem ipsum ... sit amet.`
 * **Answer:** `dolor`
 
 ---
@@ -151,16 +151,71 @@ We implemented a high-performance harvesting strategy to overcome Google Apps Sc
 * **Extraction (REST API):** Uses the Google Docs REST API (`Docs.Documents.get`) to fetch the entire document structure as a JSON map. This allows for near-instant "Uphill/Downhill" context climbing that is 10x faster than standard GAS methods.
 
 ### 2. Data Modeling & Extraction
-* **RawCard Model:** The Harvester returns a standardized object used by both the Preview UI and the Transfer API. 
+* **RawCard Model:** The Harvester returns a standardized object used by both the Preview UI and the Transfer API.
 
-```javascript
-const rawCard = {
-  question: string,               // Text on the marker line
-  paragraphTextBeforeLink: string, // Context for Gap cards
-  paragraphTextAfterLink: string,  // Context for Gap cards
-  parents: string[],              // Array of parent strings (for breadcrumbs)
-  directChildren: string[]        // Array of bullet points (answers/synonyms)
-};
+```typescript
+interface RawCard {
+  cardId:   string;                  // Numeric ID from the card URL
+  type:     CardType;                // 'SINGLE_CARD' | 'MULTI_CARD' | 'GAP' | 'SYNONYM' | 'IMAGES'
+  question: string;                  // Trimmed text left of marker (or gap sentence with ...)
+  answer?:  string | string[];       // string for SINGLE_CARD/GAP; string[] for MULTI_CARD/SYNONYM/IMAGES
+  parents:  string[];                // Ancestor breadcrumbs, climbing up by includeAbove levels
+  flags:    string[];                // e.g. ['NO_BACKWARD']
+  rowIndex: number;                  // Paragraph index in the document map
+  fullUrl?: string;                  // Full card URL from the link
+  warning?: string;                  // Set when unexpected text follows a non-SINGLE_CARD marker
+}
 ```
+
+**Key principle — level is the only thing that determines parent/child relationships.**
+Whether a paragraph is a plain heading, a bullet, or has a card marker is irrelevant.
+Only the `level` field (`-1` for normal paragraphs, `0`+ for bullets) drives extraction.
+
+**`includeAbove`** (from the card URL `depth=N`) controls how many ancestor levels are
+collected into `parents`. `includeAbove=0` → no parents. `includeAbove=1` → nearest ancestor.
+
+**Answer mapping per card type:**
+
+| Type | `answer` |
+|---|---|
+| `SINGLE_CARD` | `string` — text right of marker, trimmed |
+| `GAP` | `string` — the linked word |
+| `MULTI_CARD` | `string[]` — direct children (level+1) |
+| `SYNONYM` | `string[]` — direct children (level+1) |
+| `IMAGES` | `string[]` — direct children (level+1) |
+
+**Example — nested structure:**
+
+```
+[0]  "medicinal flowers >>>"     level=-1   MULTI_CARD, includeAbove=0
+[1]    "Cammomile"               level=0    plain bullet
+[2]      "Applications |>>>"     level=1    MULTI_CARD, includeAbove=1
+[3]          "anxiety"           level=2    child of Applications
+[4]          "digestion"         level=2    child of Applications
+[5]    "Calendula"               level=0    plain bullet
+[6]      "Applications |>>>"     level=1    MULTI_CARD, includeAbove=1
+[7]          "skin irritations"  level=2    child of Applications
+[8]          "inflammation"      level=2    child of Applications
+```
+
+Resulting RawCards:
+
+```
+[0] medicinal flowers  → question: "medicinal flowers"
+                         answer:   ["Cammomile", "Calendula"]   ← level=0 children only
+                         parents:  []                           ← includeAbove=0
+
+[2] Applications       → question: "Applications"
+                         answer:   ["anxiety", "digestion"]     ← level=2 children
+                         parents:  ["Cammomile"]                ← nearest level=0 above
+
+[6] Applications       → question: "Applications"
+                         answer:   ["skin irritations", "inflammation"]
+                         parents:  ["Calendula"]                ← nearest level=0 above
+```
+
+Note: `[1] Cammomile` has no card marker — it is only a child answer of `[0]` and a parent
+breadcrumb of `[2]`. The card marker on `[2] Applications` does not interrupt child collection
+for `[0]` — level is all that matters.
 
 * **Surgical Extraction:** Built logic to extract a single card based on the user's current cursor position or selection by mapping the physical paragraph to the REST API JSON index.
