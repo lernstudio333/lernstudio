@@ -59,8 +59,15 @@ for (const absPath of walk(srcRoot)) {
   const flatName = flattenName(relPath);
 
   if (ext === '.ts') {
-    // TypeScript → tmp/ for tsc
-    fs.copyFileSync(absPath, path.join(tmpDir, flatName));
+    // Skip test files — they are for Vitest only, not for GAS deployment
+    if (relPath.endsWith('.test.ts')) {
+      console.log(`  skip   ← ${relPath}  (test file)`);
+      continue;
+    }
+    // Strip 'export ' keywords: GAS requires all declarations to be plain globals.
+    // The export keyword is preserved in src/ for Vitest's ESM imports.
+    const src = fs.readFileSync(absPath, 'utf8').replace(/^export /gm, '');
+    fs.writeFileSync(path.join(tmpDir, flatName), src);
     console.log(`  tmp/   ← ${relPath}  →  ${flatName}`);
   } else {
     // HTML / JS / JSON → build/ directly

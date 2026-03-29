@@ -19,15 +19,20 @@ function detectMarkerPattern(text: string) {
 
   // (\|*)                          Group 1: Zero or more depth pipes
   // (>>|>>>|>S>|>I>|\[\.\.\.\])   Group 2: The marker symbol
-  // (\s*)$                         Group 3: Optional trailing spaces at end of string
-  const markerRegex = /(\|*)(>>|>>>|>S>|>I>|\[\.\.\.\])(\s*)$/;
+  // (\s*)                          Group 3: Optional trailing spaces after the marker
+  // Note: no $ anchor — marker may appear anywhere in the lookback window,
+  // e.g. when the cursor has moved past an existing link into the following text.
+  const markerRegex = /(\|*)(>>|>>>|>S>|>I>|\[\.\.\.\])(\s*)/;
   const match = text.match(markerRegex);
-  if (!match) return null;
+  if (!match) {
+    debugLog('detectMarkerPattern', { text, result: null });
+    return null;
+  }
 
   const [fullMatch, pipes, symbol, trailingSpace] = match;
   const typeKey = Object.keys(CARDTYPES).find(key => CARDTYPES[key].marker === symbol);
 
-  return {
+  const result = {
     typeKey: typeKey || 'UNKNOWN',
     symbol,
     pipesCount: pipes.length,
@@ -35,6 +40,8 @@ function detectMarkerPattern(text: string) {
     matchLength: fullMatch.length,
     trailingSpaceLength: trailingSpace.length
   };
+  debugLog('detectMarkerPattern', { text, result });
+  return result;
 }
 
 /**

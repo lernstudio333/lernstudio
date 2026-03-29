@@ -15,13 +15,11 @@
   <button id="btnConnect" class="btn btn-primary btn-flat w-100 py-2 shadow-sm" onclick="handleConnect()">Connect App</button>
 </div>
 
-<div id="transferUi" class="card-custom d-none border border-success-subtle">
-  <div class="d-flex align-items-center mb-4 text-success">
-    <div class="spinner-grow spinner-grow-sm me-2" role="status"></div>
-    <span class="fw-bold">Connection Established</span>
-  </div>
-  <button id="btnCommit" class="btn btn-success btn-flat w-100 py-3 fw-bold shadow-sm mb-3" onclick="runTransfer()">
-    TRANSFER CARDS NOW
+<div id="transferUi" class="card-custom d-none">
+  <p class="text-muted extra-small mb-1">Paired with lesson</p>
+  <p id="lessonBreadcrumb" class="fw-bold mb-4"></p>
+  <button id="btnCommit" class="btn btn-primary btn-flat w-100 py-2 shadow-sm mb-3" onclick="runTransfer()">
+    Transfer Cards
   </button>
   <div class="text-center">
     <button class="btn btn-link btn-sm text-secondary text-decoration-none" onclick="disconnect()">Switch Lesson</button>

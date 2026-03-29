@@ -58,9 +58,15 @@
         btn.innerHTML = originalText;
         if (res.success) {
           showStatus(res.action === 'PREVIEW_ONLY' ? "Reviewing Card" : "Marker Created! ✨", "text-success");
-          // If the back-end returned metadata, sync the UI
-          if(res.cardMetadata) syncUIFromMetadata(res.cardMetadata);
+          if (res.cardMetadata) syncUIFromMetadata(res.cardMetadata);
+        } else {
+          showStatus(res.error || "Something went wrong.", "text-danger");
         }
+      })
+      .withFailureHandler((err) => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showStatus(err.message || "Script error.", "text-danger");
       })
       .handleInsertMarkerOrchestrator(params);
   }
@@ -78,14 +84,14 @@
   }
 
   function renderCardToInspector(card) {
-    el('cardPreview').classList.remove('d-none');
     el('previewId').innerText = `#${card.cardId.toString().slice(-4)}`;
     el('previewType').innerText = card.type.replace('_', ' ');
     const context = card.parents.length > 0 ? `<span class="text-muted opacity-75">${card.parents.join(' › ')} › </span>` : '';
     el('previewQuestion').innerHTML = `${context}<br>${card.question}`;
     const list = el('previewAnswers');
-    list.innerHTML = card.answer ? `<li>${card.answer}</li>` : 
-      (card.directChildren?.map(c => `<li>${c}</li>`).join('') || '<li>No children</li>');
+    list.innerHTML = Array.isArray(card.answer)
+      ? card.answer.map(c => `<li>${c}</li>`).join('')
+      : (card.answer ? `<li>${card.answer}</li>` : '<li>No answer</li>');
   }
 
   function showStatus(msg, className) {
@@ -102,4 +108,74 @@
     s.className = "small text-muted text-center mt-2";
     show ? s.classList.remove('d-none') : s.classList.add('d-none');
   }
+
+  // --- 5. TRANSFER TAB ---
+
+  function initTransferTab() {
+    google.script.run
+      .withSuccessHandler((connection) => {
+        if (connection && connection.sessionToken) {
+          showConnectedState(connection);
+        }
+        // If null, the pairing UI is already visible by default — nothing to do.
+      })
+      .getConnectionStatus();
+  }
+
+  function showConnectedState(connection) {
+    const parts = [connection.programName, connection.courseName, connection.lessonName]
+      .filter(Boolean);
+    const label = parts.length > 0 ? parts.join(' > ') : connection.lessonId;
+    el('lessonBreadcrumb').innerText = label;
+    el('pairingUi').classList.add('d-none');
+    el('transferUi').classList.remove('d-none');
+  }
+
+  function handleConnect() {
+    const code = Array.from(document.querySelectorAll('.otp-input'))
+      .map((i) => (i as HTMLInputElement).value).join('');
+    const lessonId = (el('lessonId') as HTMLInputElement).value.trim();
+
+    if (!/^\d{6}$/.test(code)) return showStatus("Please enter a 6-digit pairing code.", "text-danger");
+    if (!lessonId)              return showStatus("Please enter a Lesson ID.", "text-danger");
+
+    el('btnConnect').disabled = true;
+    google.script.run
+      .withSuccessHandler((res) => {
+        el('btnConnect').disabled = false;
+        if (res.success) {
+          // Re-fetch connection to get the stored object for display
+          google.script.run
+            .withSuccessHandler(showConnectedState)
+            .getConnectionStatus();
+        } else {
+          showStatus(res.message || "Connection failed.", "text-danger");
+        }
+      })
+      .withFailureHandler((err) => {
+        el('btnConnect').disabled = false;
+        showStatus(err.message || "Script error.", "text-danger");
+      })
+      .runPairingWorkflow(code, lessonId);
+  }
+
+  function disconnect() {
+    google.script.run
+      .withSuccessHandler(() => {
+        el('transferUi').classList.add('d-none');
+        el('pairingUi').classList.remove('d-none');
+        // Clear OTP inputs
+        document.querySelectorAll('.otp-input').forEach((i) => (i as HTMLInputElement).value = '');
+        (el('lessonId') as HTMLInputElement).value = '';
+      })
+      .disconnectLesson();
+  }
+
+  function runTransfer() {
+    // TODO: implement transfer workflow
+    showStatus("Transfer not yet implemented.", "text-warning");
+  }
+
+  // Initialise transfer tab state on load
+  initTransferTab();
 </script>

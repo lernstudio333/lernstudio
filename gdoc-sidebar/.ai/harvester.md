@@ -40,7 +40,22 @@ The harvester has two separate applications
 | :----------------------- | :------------------------------------------------------------------ | :------------------------------------------------------------------- |
 
 
-## Card Extraction Logic 
+## Indentation Levels (`StructuredParagraph.level`)
+
+The `level` field is derived from the Google Docs REST API (`paragraph.bullet.nestingLevel`):
+
+| Document element        | `level` value |
+| :---------------------- | :-----------: |
+| Normal paragraph        | `-1`          |
+| Bullet point, 1st level | `0`           |
+| Bullet point, 2nd level | `1`           |
+| Bullet point, nth level | `n - 1`       |
+
+A normal paragraph (`level -1`) can have bullet children at `level 0` — `startLevel + 1` still correctly resolves to `0`.
+
+---
+
+## Card Extraction Logic
 
 1.  **The Question:**
     * **Markers:** Text on the same line to the left of the link/marker.

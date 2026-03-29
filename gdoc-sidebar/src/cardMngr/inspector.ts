@@ -10,10 +10,11 @@ function getDocumentContext() {
   const selection = doc.getSelection();
   const cursor = doc.getCursor();
 
-  if (selection) return getSelectionState(selection);
-  if (cursor) return getCursorState(cursor);
-  
-  return { focus: 'NONE' };
+  const ctx = selection ? getSelectionState(selection)
+            : cursor    ? getCursorState(cursor)
+            : { focus: 'NONE' };
+  debugLog('getDocumentContext', ctx);
+  return ctx;
 }
 
 /**
@@ -25,35 +26,43 @@ function getSelectionState(selection) {
   const start = rangeEl.getStartOffset();
   const end = rangeEl.getEndOffsetInclusive();
 
-  return {
+  const state = {
     focus: 'SELECTION',
     isSelection: true,
-    element: element,
-    // The "Analysis Segment" is the exact string selected
+    element,
     text: element.getText().substring(start, end + 1),
-    // The offset where the selection starts in the Doc Element
-    analysisSegmentStartOffset: start, 
+    markerIndex: start,
     endOffset: end,
     existingLink: findLinkInRange(element, start, end)
   };
+  debugLog('getSelectionState', { text: state.text, markerIndex: start, endOffset: end });
+  return state;
 }
 
 function getCursorState(cursor) {
-  const element = cursor.getElement().asText();
-  const offset = cursor.getOffset();
-  const lookBackLimit = 20;
-  const start = Math.max(0, offset - lookBackLimit);
+  // getSurroundingText() returns the full paragraph text (not just the current run).
+  // getSurroundingTextOffset() gives the correct absolute offset within it.
+  const element = cursor.getSurroundingText();
+  const offset   = cursor.getSurroundingTextOffset();
 
-  return {
+  const LOOKBACK_LENGTH = 20;
+  const anchor = Math.max(0, offset - LOOKBACK_LENGTH);
+  const text   = element.getText().substring(anchor, offset);
+
+  const markerMatch = detectMarkerPattern(text);
+  const markerIndex = markerMatch ? anchor + markerMatch.posMatch : offset;
+
+  const state = {
     focus: 'CURSOR',
     isSelection: false,
-    element: element,
-    text: element.getText().substring(start, offset),
-    // The offset where the lookback starts in the Doc Element
-    analysisSegmentStartOffset: start, 
+    element,
+    text,
+    markerIndex,
     endOffset: offset,
     existingLink: element.getLinkUrl(Math.max(0, offset - 1))
   };
+  debugLog('getCursorState', { text, anchor, offset, markerMatch, markerIndex });
+  return state;
 }
 
 /**

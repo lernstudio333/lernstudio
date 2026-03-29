@@ -12,27 +12,20 @@
  */
 function runTransferWorkflow(isDryRun: boolean = true) {
   try {
-    // --- STEP 1: AUTHENTICATION (The "Permission" Phase) ---
-    // Pull the persistent token saved during the Pairing workflow.
-    
-    const props = PropertiesService.getDocumentProperties();
-    const sessionToken = props.getProperty('LS_SESSION_TOKEN');
-    
-    if (!sessionToken) {
+    // --- STEP 1: AUTHENTICATION ---
+    const connection = getConnectionInfo();
+    if (!connection || !connection.sessionToken) {
       return { success: false, message: "Not paired. Please connect to Lern-Studio first." };
     }
+    const sessionToken = connection.sessionToken;
 
-
-    // --- STEP 2: HARVESTING & TRANSFORMATION (The "Sensor" Phase) ---
-    // Read the document and build the CARDS array exactly like your sample.
-    
+    // --- STEP 2: HARVESTING & TRANSFORMATION ---
     const docId = DocumentApp.getActiveDocument().getId();
-    const allRows = gatherDocumentMap(docId);
-    
-    // Transform rows into the CARDS structure from your sample
-    const cards: RawCard[] = allRows
-      .filter(row => row.cardMetadata !== null)
-      .map(row => buildRawCard(allRows, row.index));
+    const allParas = gatherDocumentMap(docId);
+
+    const cards: ApiCard[] = allParas
+      .filter(p => p.cardMetadata !== null)
+      .map(p => rawCardToApiCard(buildRawCard(allParas, p.index), docId));
 
 
     // --- STEP 3: TRANSPORT (The "Network" Phase) ---
@@ -73,11 +66,30 @@ function runTransferWorkflow(isDryRun: boolean = true) {
  * HELPER: Posts cards and returns the parsed report.
  * This is the TypeScript version of your `submitCards(dryRun)` helper.
  */
-function transportToLernStudio(cards: RawCard[], dryRun: boolean, token: string): SyncReport {
-  // TODO: Implement UrlFetchApp.fetch()
-  // - Headers: { Authorization: 'Bearer ' + token }
-  // - Payload: { dry_run: dryRun, cards: cards }
-  // - Endpoint: /integration-cards
-  
-  return { inserted: [], updated: [] }; // Placeholder
+function transportToLernStudio(cards: ApiCard[], dryRun: boolean, token: string): SyncReport {
+  const url = `${CONFIG.API_BASE_URL}/integration/cards`;
+
+  const payload = JSON.stringify({ dry_run: dryRun, cards });
+
+  const response = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: `Bearer ${token}` },
+    payload,
+    muteHttpExceptions: true
+  });
+
+  const status = response.getResponseCode();
+  const body   = JSON.parse(response.getContentText());
+
+  debugLog('transportToLernStudio', { status, cardCount: cards.length, dryRun, body });
+
+  if (status !== 200) {
+    throw new Error(body.error || `HTTP ${status}`);
+  }
+
+  return {
+    inserted: body.inserted || [],
+    updated:  body.updated  || []
+  };
 }
